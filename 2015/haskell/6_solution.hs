@@ -1,0 +1,101 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+
+import Control.Applicative hiding (some)
+import Control.Monad
+import Control.Monad.State
+import Data.Text (Text)
+import Data.Void
+import Text.Megaparsec hiding (State)
+import Text.Megaparsec.Char
+import Data.Text as T hiding (map)
+import Text.Megaparsec.Char.Lexer as L
+import Data.Text.IO as TIO
+import Data.List
+import Data.Foldable
+import Data.Either (rights)
+
+-- Types
+type Parser = Parsec Void Text
+
+data Action = Turnon | Turnoff | Toggle deriving (Eq, Show)
+
+data GridRange = GridRange
+    { x1 :: Int
+    , y1 :: Int
+    , x2 :: Int
+    , y2 :: Int
+    } deriving Show
+
+data Instruction = Instruction
+    { action :: Action
+    , gridRange :: GridRange }
+    deriving Show
+
+-- Parser 
+-- This parser uses megaparsec
+pAction :: Parser Action
+pAction = choice
+  [ Turnon  <$ string "turn on"
+  , Turnoff <$ string "turn off"
+  , Toggle  <$ string "toggle" ]
+
+pGridRange :: Parser GridRange
+pGridRange  = do
+    x1 <- L.decimal
+    void (char ',')
+    y1 <- L.decimal
+    void (string " through ")
+    x2 <- L.decimal
+    void (char ',')
+    y2 <- L.decimal
+    return GridRange {..}
+
+pInstruction :: Parser Instruction
+pInstruction = do
+    action <- pAction
+    void (char ' ')
+    gridRange <- pGridRange
+    return Instruction{..}
+
+-- Part 1
+
+data Point = Point Int Int deriving (Show, Eq)
+
+type Grid = [Point]
+
+genPoints :: GridRange -> Grid
+genPoints gr = [Point a b | a <- [x1 gr..x2 gr], b <- [y1 gr..y2 gr]]
+
+toggle :: Eq a => [a] -> [a] -> [a]
+toggle a b = Data.List.filter (`notElem` y) x where
+  x = a `union` b
+  y = a `intersect` b
+
+
+doInstruction :: Grid -> Instruction -> Grid
+doInstruction g i 
+  | action i == Turnon = nub $ g ++ p
+  | action i == Turnoff = Prelude.filter (`notElem` p) g
+  | action i == Toggle = toggle g p 
+  where p = genPoints $ gridRange i
+
+runInstruction :: Instruction -> State Grid ()
+runInstruction i = do
+    g <- get
+    put $ doInstruction g i
+    
+part1 :: [Instruction] -> State Grid ()
+part1 = traverse_ runInstruction -- I think this may be the problem
+
+part1' :: [Instruction] -> Grid
+part1' is = execState (part1 is) []
+
+-- Main
+
+main :: IO ()
+main = do
+    input <- TIO.readFile "../inputs/6_input.short.txt"
+     -- instructions <- rights $ map (runParser pInstruction "file") $ T.lines input
+     -- print $ show $ Data.Foldable.length $ execState (part1 instructions) []
+    print $ Data.Foldable.length $ part1' $ rights $ map (runParser pInstruction "file") $ T.lines input
