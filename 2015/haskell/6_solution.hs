@@ -9,7 +9,7 @@ import Text.Megaparsec hiding (State)
 import Text.Megaparsec.Char
 import Data.Text as T hiding (map, foldr)
 import Text.Megaparsec.Char.Lexer as L
-import Data.Either (rights)
+import Data.Either (rights, fromRight)
 
 import Data.Text.IO as TIO
 -- Types --
@@ -35,9 +35,10 @@ applyInstruction ps (IP ins points)
     | ins == Toggle = [p | p <- ps, p `notElem` points] `union` [p | p <- points, p `notElem` ps]
 
 
-runInstruction :: InstructionPoint -> State [Point] ()
-runInstruction ip = do
+runInstruction :: Text -> State [Point] ()
+runInstruction ins_text = do
     currpoints <- get
+    ip <- runParser pInstructionPoint "file" ins_text 
     put $ applyInstruction currpoints ip
 
 -- This function runs many InstructionPoints and allows us to use (execState)
