@@ -1,46 +1,60 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
-
-import Control.Applicative hiding (some)
-import Control.Monad
 import Control.Monad.State
+import Data.List
+import Data.Foldable
+
 import Data.Text (Text)
 import Data.Void
 import Text.Megaparsec hiding (State)
 import Text.Megaparsec.Char
-import Data.Text as T hiding (map)
+import Data.Text as T hiding (map, foldr)
 import Text.Megaparsec.Char.Lexer as L
-import Data.Text.IO as TIO
-import Data.List
-import Data.Foldable
 import Data.Either (rights)
 
--- Types
+import Data.Text.IO as TIO
+-- Types --
+data Point = Point Int Int deriving (Show, Eq)
+
+data Instruction = TurnOff | TurnOn | Toggle deriving (Show, Eq)
+
+data InstructionPoint = IP 
+    { ins :: Instruction
+    , points :: [Point] }
+    deriving (Show)
+
+-- This takes two points and generates all points that are in the box
+-- defined by the two points
+expandSquare :: Point -> Point -> [Point]
+expandSquare (Point x y) (Point z w) = [Point a b | a <- [x..z], b <- [y..w]]
+
+
+applyInstruction :: [Point] -> InstructionPoint -> [Point]
+applyInstruction ps (IP ins points)
+    | ins == TurnOff = [p | p <- ps, p `notElem` points]
+    | ins == TurnOn = ps `union` points
+    | ins == Toggle = [p | p <- ps, p `notElem` points] `union` [p | p <- points, p `notElem` ps]
+
+
+runInstruction :: InstructionPoint -> State [Point] ()
+runInstruction ip = do
+    currpoints <- get
+    put $ applyInstruction currpoints ip
+
+-- This function runs many InstructionPoints and allows us to use (execState)
+runInstructions :: [InstructionPoint] -> State [Point] ()
+runInstructions = traverse_ runInstruction
+
+-- Parser
+-- This parser uses megaparsec
 type Parser = Parsec Void Text
 
-data Action = Turnon | Turnoff | Toggle deriving (Eq, Show)
-
-data GridRange = GridRange
-    { x1 :: Int
-    , y1 :: Int
-    , x2 :: Int
-    , y2 :: Int
-    } deriving Show
-
-data Instruction = Instruction
-    { action :: Action
-    , gridRange :: GridRange }
-    deriving Show
-
--- Parser 
--- This parser uses megaparsec
-pAction :: Parser Action
-pAction = choice
-  [ Turnon  <$ string "turn on"
-  , Turnoff <$ string "turn off"
+pInstruction :: Parser Instruction
+pInstruction = choice
+  [ TurnOn  <$ string "turn on"
+  , TurnOff <$ string "turn off"
   , Toggle  <$ string "toggle" ]
 
-pGridRange :: Parser GridRange
+pGridRange :: Parser [Point]
 pGridRange  = do
     x1 <- L.decimal
     void (char ',')
@@ -49,53 +63,31 @@ pGridRange  = do
     x2 <- L.decimal
     void (char ',')
     y2 <- L.decimal
-    return GridRange {..}
+    return $ expandSquare (Point x1 y1) (Point x2 y2)
 
-pInstruction :: Parser Instruction
-pInstruction = do
-    action <- pAction
+pInstructionPoint :: Parser InstructionPoint
+pInstructionPoint = do
+    instruction <- pInstruction
     void (char ' ')
-    gridRange <- pGridRange
-    return Instruction{..}
+    ps <- pGridRange
+    return $ IP instruction ps
+
+
+-- Testing data --
+-- testCurrPoint = expandSquare (Point 0 0) (Point 3 3)
+-- testTurnOff = IP TurnOff (expandSquare (Point 0 0) (Point 2 2))
+-- testTurnOn = IP TurnOn (expandSquare (Point 1 1) (Point 4 4))
+-- testToggle = IP Toggle (expandSquare (Point 1 1) (Point 4 4))
+
 
 -- Part 1
 
-data Point = Point Int Int deriving (Show, Eq)
-
-type Grid = [Point]
-
-genPoints :: GridRange -> Grid
-genPoints gr = [Point a b | a <- [x1 gr..x2 gr], b <- [y1 gr..y2 gr]]
-
-toggle :: Eq a => [a] -> [a] -> [a]
-toggle a b = Data.List.filter (`notElem` y) x where
-  x = a `union` b
-  y = a `intersect` b
-
-
-doInstruction :: Grid -> Instruction -> Grid
-doInstruction g i 
-  | action i == Turnon = nub $ g ++ p
-  | action i == Turnoff = Prelude.filter (`notElem` p) g
-  | action i == Toggle = toggle g p 
-  where p = genPoints $ gridRange i
-
-runInstruction :: Instruction -> State Grid ()
-runInstruction i = do
-    g <- get
-    put $ doInstruction g i
-    
-part1 :: [Instruction] -> State Grid ()
-part1 = traverse_ runInstruction -- I think this may be the problem
-
-part1' :: [Instruction] -> Grid
-part1' is = execState (part1 is) []
-
--- Main
 
 main :: IO ()
 main = do
-    input <- TIO.readFile "../inputs/6_input.short.txt"
-     -- instructions <- rights $ map (runParser pInstruction "file") $ T.lines input
-     -- print $ show $ Data.Foldable.length $ execState (part1 instructions) []
-    print $ Data.Foldable.length $ part1' $ rights $ map (runParser pInstruction "file") $ T.lines input
+    input <- TIO.readFile "../inputs/6_input.readlly_short.txt"
+    let
+        instructions = Data.List.reverse $ rights $ map (runParser pInstructionPoint "file") $ T.lines input
+        final = execState (runInstructions instructions) []
+    print $ Data.List.length final
+
