@@ -1,4 +1,5 @@
 import Data.List
+import qualified Data.Text as DT
 
 -- part 1
 

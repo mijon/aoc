@@ -1,112 +1,123 @@
 {-# LANGUAGE OverloadedStrings #-}
-import Data.List.Split
-import Data.Void (Void)
-import Data.Either (rights)
-import Control.Applicative ((<|>))
-import Data.Text (Text, pack)
-
+import Data.Bits
+import Data.Text hiding (head, filter, lines, map)
+import Data.Void
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer as L
+import GHC.Driver.Session (supportedLanguagesAndExtensions)
+import Data.Either
+-- import Text.Megaparsec.Byte (letterChar)
 
+-- Types
+data Action = WireAssignment Int
+            | WireAnd WireName WireName
+            | WireOr WireName WireName
+            | WireShiftL WireName Int
+            | WireShiftR WireName Int
+            | WireNot WireName
+            deriving Show
 
-example = ["123 -> x"
-          ,"456 -> y"
-          ,"x AND y -> d"
-          ,"x OR y -> e"
-          ,"x LSHIFT 2 -> f"
-          ,"y RSHIFT 2 -> g"
-          ,"NOT x -> h"
-          ,"NOT y -> i"]
+type Expression = (WireName, Action)
+type Instructions = [Expression]
 
----- Types ----
-type Wire = String
+type WireName = String
+getExpression :: WireName -> [Expression] -> Expression
+getExpression n es = head $ filter (\x -> fst x == n) es
 
-data Instruction = Instruction 
-    { output :: Wire
-    , expr   :: Expression 
-    } deriving (Show)
-
-data Expression = Value Int
-                | Not Wire
-                | Or Wire Wire
-                | And Wire Wire
-                | Lshift Wire Int
-                | Rshift Wire Int
-                deriving (Show)
-
----- Parser ----
-type Parser = Parsec Void Text
-
-pInstruction :: Parser Instruction
-pInstruction = do
-    expr <- pExpression
-    string " -> "
-    output <- pWire
-    return $ Instruction output expr
+-- Parsing
+type Parser = Parsec Void String
 
 pExpression :: Parser Expression
-pExpression = try pNot
-          <|> try pAnd
-          <|> try pOr
-          <|> try pLshift
-          <|> try pRshift
-          <|> Value <$> pValue
+pExpression = do
+  action <- pAction
+  string " -> "
+  wirename <- pWireName
+  return (wirename, action)
 
--- These could have been defined in line, but it seemed easier to test
--- having broken them out.
-pNot :: Parser Expression
-pNot = do
-    string "NOT "
-    Not <$> pWire
+pWireName :: Parser WireName
+pWireName = many letterChar
 
-pAnd :: Parser Expression
-pAnd = do
-    a <- pWire
-    string " AND "
-    And a <$> pWire
+pAction :: Parser Action
+pAction =   try pWireAnd 
+        <|> try pWireOr
+        <|> try pWireShiftL
+        <|> try pWireShiftR
+        <|> try pWireNot
+        <|> pWireAssignment
 
-pOr :: Parser Expression
-pOr = do
-   a <- pWire
-   string " OR "
-   Or a <$> pWire
+integer :: Parser Int
+integer = read <$> many digitChar
 
-pLshift :: Parser Expression
-pLshift = do
-    w <- pWire
-    string " LSHIFT "
-    Lshift w <$> pValue
-
-pRshift :: Parser Expression
-pRshift = do
-    w <- pWire
-    string " RSHIFT "
-    Lshift w <$> pValue
-
-pWire :: Parser Wire
-pWire = many letterChar
-
-pValue :: Parser Int
-pValue = read <$> many digitChar
-
----- Utils ----
-isOutput :: Wire -> Instruction -> Bool
-isOutput w i = output i == w
-
-inputs :: Expression -> [Wire]
-inputs (Value _) = []
-inputs (Not w) = [w]
-inputs (Or w1 w2) = [w1, w2]
-inputs (And w1 w2) = [w1, w2]
-inputs (Lshift w _) = [w]
-inputs (Rshift w _) = [w]
+pWireAssignment :: Parser Action
+pWireAssignment = do
+  WireAssignment <$> integer
 
 
+pWireAnd :: Parser Action
+pWireAnd = do
+  x <- pWireName
+  string " AND "
+  y <- pWireName
+  return $ WireAnd x y
+
+pWireOr :: Parser Action
+pWireOr = do
+  x <- pWireName
+  string " OR "
+  y <- pWireName
+  return $ WireOr x y
+
+pWireShiftL :: Parser Action
+pWireShiftL = do
+  x <- pWireName
+  string " LSHIFT "
+  y <- integer
+  return $ WireShiftL x y
+
+
+pWireShiftR :: Parser Action
+pWireShiftR =  do
+  x <- pWireName
+  string " RSHIFT "
+  y <- integer
+  return $ WireShiftR x y
+
+pWireNot :: Parser Action
+pWireNot = do
+  string "NOT "
+  WireNot <$> pWireName
 
 
 
+---
+
+wrapAround :: Int -> Int
+wrapAround x 
+   | x < 0 = 2^16 + x 
+   | otherwise = x
+
+-- solve :: WireName -> [Expression] -> Int
 
 
----- testing ---- 
-parsed = rights $ map (runParser pInstruction "file" . pack) example
+resolve :: Expression -> [Expression] -> Int
+resolve (s, WireAssignment x) _ = wrapAround x 
+resolve (s, WireAnd a b) es = wrapAround $ (.&.) (solve a es) (solve b es)
+resolve (s, WireOr a b) es  = wrapAround $ (.|.) (solve a es) (solve b es)
+resolve (s, WireShiftL a b) es = wrapAround $ shiftL (solve a es ) b
+resolve (s, WireShiftR a b) es = wrapAround $ shiftR (solve a es ) b
+resolve (s, WireNot a ) es = wrapAround $ complement (solve a es)
+
+solve :: WireName -> [Expression] -> Int
+solve s es = resolve (getExpression s es) es
+
+--- solutions 
+-- part1 :: [String] -> Int
+-- part1 ds = solve "a" rights $ map (runParser pExpression "file") ds
+part1 ds = map (runParser pExpression "file") ds
+
+
+main :: IO ()
+main = do
+    input <- lines <$> readFile "../inputs/7_input.txt"
+    print $ part1 input
