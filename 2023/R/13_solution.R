@@ -1,23 +1,5 @@
 library(tidyverse)
 
-test_input1 <- c(
-  "#.##..##.",
-  "..#.##.#.",
-  "##......#",
-  "##......#",
-  "..#.##.#.",
-  "..##..##.",
-  "#.#.##.#.")
-
-test_input2 <- c(
-  "#...##..#",
-  "#....#..#",
-  "..##..###",
-  "#####.##.",
-  "#####.##.",
-  "..##..###",
-  "#....#..#")
-
 input <- read_lines("../input/13_input.txt")
 
 parse_input <- function(input) {
@@ -28,11 +10,7 @@ parse_input <- function(input) {
   tibble(pattern = patterns)
 }
 
-
 # ---- part 1 ----
-tmp_test <- c("ABC",
-              "XYZ")
-
 flip_input <- function(input) {
   map_chr(1:str_length(input[[1]]),
           \(n) {map_chr(input,
@@ -52,11 +30,12 @@ confirm_symmetry <- function(input, n) {
   all(left[1:min_len] == right[1:min_len])
 }
 
-count_vertical_symmetry <- function(pattern) {
+count_vertical_symmetry <- function(pattern, candidates_to_ignore = c()) {
   candidates <- rows_above_join(pattern) 
   checks <- map_lgl(candidates, \(n) confirm_symmetry(pattern, n))
   
-  confirmed_candidates <- candidates[which(checks)]
+  confirmed_candidates <- candidates[which(checks)] |>
+    discard(\(x) x %in% candidates_to_ignore)
   if (length(confirmed_candidates) == 1) {
     confirmed_candidates
   } else if (length(confirmed_candidates) > 1) {
@@ -71,11 +50,15 @@ count_horizontal_symmetry <- function(pattern) {
   count_vertical_symmetry(pattern)
 }
 
-part_1 <- function(input) {
+prep_part_1 <- function(input) {
   parse_input(input) |>
     mutate(verts = map_dbl(pattern, count_vertical_symmetry),
            horiz = map_dbl(pattern, count_horizontal_symmetry),
-           score = 100 * verts + horiz) |>
+           score = 100 * verts + horiz)
+}
+
+part_1 <- function(input) {
+  prep_part_1(input) |>
     pull(score) |>
     sum()
 }
@@ -109,7 +92,7 @@ smudge_pair_to_pos <- function(l, r, input) {
     which()
 }
 
-count_vertical_symmetry2 <- function(pattern) {
+count_vertical_symmetry2 <- function(pattern, candidates_to_ignore) {
   potential_pairs <- find_potential_smudge_pairs(pattern)
   
   pot_cols <- map2_dbl(potential_pairs$row,
@@ -120,27 +103,35 @@ count_vertical_symmetry2 <- function(pattern) {
                               col = pot_cols) |>
     distinct()
   
-  map2(potential_smudges$row, potential_smudges$col,
+  output <- map2(potential_smudges$row, potential_smudges$col,
        flip_smudge,
        pattern) |>
-    map_dbl(count_vertical_symmetry) |>
-    discard(\(x) {x == 0})
+    map_dbl(count_vertical_symmetry,
+            candidates_to_ignore) |>
+    discard(\(x) {x == 0}) |>
+    unique()
+  
+  if (length(output) == 0) {
+    0
+  } else {
+    output
+  }
 }
 
-count_horizontal_symmetry2 <- function(pattern) {
+count_horizontal_symmetry2 <- function(pattern, candidates_to_ignore) {
   pattern <- flip_input(pattern) 
-  count_vertical_symmetry2(pattern)
+  count_vertical_symmetry2(pattern, candidates_to_ignore)
 }
 
 part_2 <- function(input) {
-  parse_input(input) |>
-    mutate(verts = map_dbl(pattern, count_vertical_symmetry2),
-           horiz = map_dbl(pattern, count_horizontal_symmetry2),
-           score = 100 * verts + horiz) |>
+  prep_part_1(input) |>
+    mutate(verts2 = map2_dbl(pattern, verts, count_vertical_symmetry2),
+           horiz2 = map2_dbl(pattern, horiz, count_horizontal_symmetry2),
+           score = 100 * verts2 + horiz2) |>
     pull(score) |>
     sum()
 }
 
 # ---- evaluations ----
 part_1(input) # 27202
-part_2(input)
+part_2(input) # 41566
