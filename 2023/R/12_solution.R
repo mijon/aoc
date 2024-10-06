@@ -103,6 +103,23 @@ part_1 <- function(input, counter) {
     sum()
 }
 
+# ---- part 2 ----
+prep_for_part_2 <- function(parsed_input) {
+  parsed_input |>
+    mutate(template = paste(template, template, template,
+                            template, template, sep = "?"),
+           desc = map(desc, \(s) rep(s, 5)))
+}
+
+part_2 <- function(input, counter) {
+  input |>
+    parse_input() |>
+    prep_for_part_2() |>
+    mutate(counts = map2_dbl(template, desc, counter, .progress = TRUE)) |>
+    pull(counts) |>
+    sum()
+}
+
 # ---- regex version (works but very slow) ----
 # I really should have known better, since this is a "generate all
 # possibilities, then find the ones that work" strategy. That's always a stupid
