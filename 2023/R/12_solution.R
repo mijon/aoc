@@ -31,68 +31,76 @@ msplit <- strsplit(m, "")[[1]]
 # issue of stopping early when we know we cannot complete, but for now, let's
 # keep things simple.
 
-gen_all_legal_placings <- function(template, block_len) {
-  placings <- list()
-  
-  len_template <- length(template)
-  for (i in 1:(len_template - block_len + 1)) {
-    print(i)
-    if ((i == 1 || template[i - 1] %in% c(".", "?")) &&
-        template[i] == "?" &&
-        all(template[(i):(i + block_len - 1)] %in% c("#", "?")) &&
-        (i == (len_template - block_len + 1) || template[block_len + i ] %in% c(".", "?"))) {
-      replaced <- template
-      replaced[1: i - 1] <- ifelse(replaced[1: i - 1] == "?", ".", replaced[1: i - 1])
-      replaced[i:(i + block_len - 1)] <- "#"
-      replaced[block_len + i ] <- "."
-      placings <- append(placings, list(replaced))
-    }
-  }
-  
-  placings
-}
-
-gen_all_legal_placings_faster <- function(info_list, block_len) {
+gen_all_legal_placings <- function(info_list, block_len, check_clean_end = FALSE) {
   placings <- list()
   placed_pos <- list()
   template <- info_list$template
   start_pos <- info_list$next_start_pos
   
   len_template <- length(template)
+  if (start_pos > len_template) {
+    return(placings)
+  }
+  
   for (i in start_pos:(len_template - block_len + 1)) {
-    print(i)
     if ((i == 1 || template[i - 1] %in% c(".", "?")) &&
-        template[i] == "?" &&
+        # template[i] == "?" &&
         all(template[(i):(i + block_len - 1)] %in% c("#", "?")) &&
         (i == (len_template - block_len + 1) || template[block_len + i ] %in% c(".", "?"))) {
       replaced <- template
       replaced[1: i - 1] <- ifelse(replaced[1: i - 1] == "?", ".", replaced[1: i - 1])
       replaced[i:(i + block_len - 1)] <- "#"
-      replaced[block_len + i ] <- "."
-      placings <- append(placings, list(list(template = replaced,
-                                        next_start_pos = i + block_len + 1)))
+      if (i < (len_template - block_len)) {
+        replaced[block_len + i ] <- "."
+      }
+      
+      if (check_clean_end && i + block_len - 1 < len_template) { 
+        if (all(replaced[(i + block_len): len_template] %in% c("?", "."))) {
+          placings <- append(placings, list(list(template = replaced,
+                                                 next_start_pos = i + block_len + 1)))
+        }
+      } else {
+        placings <- append(placings, list(list(template = replaced,
+                                               next_start_pos = i + block_len + 1)))
+      }
+    
+      if (template[i] == "#") { # i.e. *had* to place it here
+        break
+      }
     }
+    
   }
   
   placings
 }
 
 count_matches <- function(template, ds) {
-  candidates <- str_split(template, "")
-  
-  for (d in ds) {
-    candidates <- map(candidates, gen_all_legal_placings, d) |> flatten()
-  }
-  length(candidates)
-}
-
-count_matches_faster <- function(template, ds) {
   candidates <- list(list(template = str_split(template, "")[[1]],
                      next_start_pos = 1))
-  for (d in ds) {
-    candidates <- map(candidates, gen_all_legal_placings_faster, d) |> flatten()
+  head <- ds[1:(length(ds) - 1)]
+  last <- ds[length(ds)]
+  
+  for (d in head) {
+    candidates <- map(candidates, gen_all_legal_placings, d) |> flatten()
   }
-  length(candidates)
+  candidates <- map(candidates, gen_all_legal_placings, last, check_clean_end = TRUE) |> flatten()
+  
+  # This bit is a bit janky, as on some of the inputs, we're overstating the
+  # numbers because the count function isn't working 100%. We're missing the
+  # part when there are "#" after we're done. So we just remove any values where
+  # we have the wrong number of "#"s.
+  candidates |> map("template") |> 
+    keep(\(x) sum(x == "#") == sum(ds)) |>
+    length()
+}
+
+
+part_1 <- function(input, counter) {
+  input |>
+    parse_input() |>
+    mutate(counts = map2_dbl(template, desc, counter, .progress = TRUE)) |>
+    pull(counts) |>
+    sum()
 }
 
 # ---- regex version (works but very slow) ----
@@ -131,14 +139,7 @@ count_matches_regex <- function(template, d) {
     sum()
 }
 
-part_1_regex <- function(input, counter = count_matches_regex) {
-  input |>
-    parse_input() |>
-    mutate(counts = map2_dbl(template, desc, counter, .progress = TRUE)) |>
-    pull(counts) |>
-    sum()
-}
 
 # Only uncomment this if you have time to waste.
-#part_1_regex(input) # 7541
+#part_1_regex(input, count_matched_regex) # 7541
 
