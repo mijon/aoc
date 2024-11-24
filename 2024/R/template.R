@@ -1,6 +1,8 @@
 
 INPUT_PATH <- "../input/{{day}}_input.txt"
 
+example_data <- "{{example_data}}"
+
 # ---- input reading and parsing ----
 input <- readr::read_file(INPUT_PATH)
 
