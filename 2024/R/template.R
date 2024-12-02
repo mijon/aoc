@@ -1,12 +1,13 @@
-
+library(tidyverse)
 INPUT_PATH <- "../input/{{day}}_input.txt"
 
-example_data <- "{{example_data}}"
+example_data <- "{{example_data}}" |>
+  str_split("\n")
 
 # ---- input reading and parsing ----
-input <- readr::read_file(INPUT_PATH)
+input <- readr::read_lines(INPUT_PATH)
 
-parse_input <- funtion(input) {
+parse_input <- function(input) {
   
 }
 
