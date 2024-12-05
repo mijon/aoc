@@ -52,7 +52,6 @@ input_to_flat <- function(input) {
 # Given some collection of regexes, this function makes a new function that
 # counts matches.
 regex_counter <- function(regexes) {
-  rlang:::enquo(regexes)
   function(input) {
     flat <- input_to_flat(input)
     num_cols <- ncol(input_to_mat(input))
