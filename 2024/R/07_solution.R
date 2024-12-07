@@ -76,3 +76,48 @@ part_2 <- make_part(check_vec_2)
 # ---- Results ----
 part_1(input) # 1298300076754
 part_2(input) # 248427118972289
+
+
+# --- Extension ---
+#
+# Suppose instead of adding one single extra operator in part 2, what if we had
+# to add ten more. The current method would require much copying and pasting. A
+# nicer method would be to accept a list of operators of any length and then to
+# or reduce the results:
+#
+# However, in testing, this resulted in an even slower run time, and is only
+# presented here because I think it's pretty.
+make_part_general <- function(ops) {
+  checker <- make_checker(ops)
+  function(input) {
+    parse_input(input) |>
+      mutate(test = map2_lgl(target, vec, checker, .progress = TRUE)) |>
+      filter(test) |>
+      pull(target) |>
+      sum()
+  }
+}
+
+make_checker <- function(ops) {
+  check_vec <- function(target, vec, result = FALSE) {
+    if (length(vec) <= 1) {
+      return(vec == target)
+    }
+    
+    first_two <- head(vec, 2)
+    rst <- tail(vec, -2)
+    
+    calc_results <- map_dbl(ops, \(op) reduce(first_two, op))
+    reduce(map_lgl(calc_results, \(r) check_vec(target, c(r, rst))), `||`, .init = result)
+  }
+}
+
+`%|%` <- function(l, r) {
+  as.numeric(paste0(l, r, collapse = ""))
+}
+
+part_1_general <- make_part_general(list(`+`, `*`))
+part_2_general <- make_part_general(list(`+`, `*`, `%|%`))
+
+part_1_general(input)
+part_2_general(input)
