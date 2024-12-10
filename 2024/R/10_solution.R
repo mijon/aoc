@@ -27,11 +27,11 @@ pad_grid <- function(m, x, width = 1) {
 # Get the points and values for all up, down, left, right of some point, p.
 plus_on_point <- function(p, grid) {
   tribble(
-    ~p,      ~val,
-    c(p[1] - 1, p[2] + 0), grid[p[1] - 1, p[2] + 0],
-    c(p[1] + 1, p[2] + 0), grid[p[1] + 1, p[2] + 0],
-    c(p[1] + 0, p[2] - 1), grid[p[1] + 0, p[2] - 1],
-    c(p[1] + 0, p[2] + 1), grid[p[1] + 0, p[2] + 1]
+    ~p,                       ~val,
+    c(p[1] - 1, p[2] + 0),    grid[p[1] - 1, p[2] + 0],
+    c(p[1] + 1, p[2] + 0),    grid[p[1] + 1, p[2] + 0],
+    c(p[1] + 0, p[2] - 1),    grid[p[1] + 0, p[2] - 1],
+    c(p[1] + 0, p[2] + 1),    grid[p[1] + 0, p[2] + 1]
   )
 }
 
