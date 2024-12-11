@@ -1,5 +1,8 @@
 library(tidyverse)
+options(digits = 22)
 INPUT_PATH <- "../input/11_input.txt"
+
+example_data <- "125 17"
 
 # ---- input reading and parsing ----
 input <- readr::read_lines(INPUT_PATH)
@@ -90,14 +93,10 @@ queue <- function(v) {
 }
 
 connections_to_matrix <- function(connections) {
-  # This is just a mess... There are some points that we start at that we never
-  # return to, so these need to be added in manually.
   missing_tos <- connections |> filter(!from %in% to) |>
     mutate(to = from, from = -1, n = 0) |>
     distinct()
   
-  # Then we do some manipulation to reshape this into a matrix... there's
-  # probably a faster way to do this whole thing.
   connections <- bind_rows(connections, missing_tos) |>
     arrange(to) |>
     pivot_wider(names_from = "to", values_from = "n", values_fill = 0) |>
@@ -113,8 +112,8 @@ connections_to_matrix <- function(connections) {
 }
 
 gen_graph <- function(start) {
-  # This is fine, but it is slow.
   todo <- queue(start)
+  connections <- tibble(from = numeric(), to = numeric(), n = numeric())
   while(todo$len() != 0) {
     current_from <- todo$pop()
     tos <- process(current_from)
@@ -152,9 +151,10 @@ part_2 <- function(input, n) {
   
   # make a vector to represent the input
   input_vec <- rep(0, nrow(g))
+  input_vec[which(colnames(g) %in% input)] <- 1
   sum(input_vec %*% g)
 }
 
 # ---- Results ----
 part_1(input) # 197157
-part_2(input) # 234430066982597
+part_2(input, n = 75) # 234430066982597
