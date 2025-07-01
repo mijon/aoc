@@ -117,7 +117,6 @@ part_1 <- function(input) {
   bot_list <- parse_input(input)
   condition <- function(bot) {all(bot_list[[bot]]$values == c(17, 61))}
   effect <- function(bot) {
-    print(bot_list[[bot]])
     return(bot_list[[bot]]$name)
     }
   
