@@ -46,6 +46,10 @@ elem <- function(item, l) {
 #'
 #' @param start Start node
 #' @param end End node
+#' @param node_compare_fn, node -> node -> bool: Function used to check whether
+#'   the current node *is* another node, specifically used to check whether the
+#'   current node is equal to the `end` node. For basic problems this can be
+#'   `identical`.
 #' @param heuristic_cost_fn node -> Int: returning the score estimate for some
 #'   node. This is the key part of a*
 #' @param get_neighbours node -> [node]: returning the list of nodes connected
@@ -58,10 +62,11 @@ elem <- function(item, l) {
 #'  - `path`: the shortest path found between `start` and `end`
 #'  - `visited`: all visited nodes in this run (mostly used for debugging)
 a_star <- function(start, end, 
+                   node_compare_fn,
                    heuristic_cost_fn, 
                    get_neighbours, 
-                   d_between_neighbours 
-                   ) {
+                   d_between_neighbours
+) {
   visited <- list() 
   frontier <- list(start)
   
@@ -84,7 +89,7 @@ a_star <- function(start, end,
     # get the node in `frontier` with the lowest fScore value
     current <- get_best_candidate(frontier, fScore)
     
-    if (identical(current, end)) {
+    if (node_compare_fn(current, end)) {
       print("found goal, reconstructing...")
       return(list(path = reconstruct_path(came_from, current),
                   visited = visited))
@@ -93,7 +98,7 @@ a_star <- function(start, end,
     # remove current from frontier
     # frontier <- frontier[frontier != current]
     visited <- append(visited, list(current))
-    frontier <- discard(frontier, \(x) identical(x, current))
+    frontier <- discard(frontier, \(x) node_compare_fn(x, current))
     
     # get the viable neighbours of current
     neighbours <- get_neighbours(current)
@@ -110,8 +115,9 @@ a_star <- function(start, end,
         }
       }
     }
-    
+    # print(length(frontier))
   }
+  # print(visited)
   return(FALSE)
 }
 
