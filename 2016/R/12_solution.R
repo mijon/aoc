@@ -26,11 +26,7 @@ source("assembunny.R")
 
 # ---- Input -----
 
-# The optimisation works on string pattern matching, so it's easier to have the
-# input as one big string.
 INPUT_PATH <- "../input/12_input.txt"
-
-# But the graphing is easier with one instruction per line.
 input <- read_lines(INPUT_PATH)
 
 # ---- Processing ----
