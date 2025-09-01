@@ -12,10 +12,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "aoc"
-version = "0.1.0"
-
-[[package]]
 name = "cfg-if"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -27,6 +23,10 @@ version = "0.1.0"
 dependencies = [
  "rstest",
 ]
+
+[[package]]
+name = "day_02"
+version = "0.1.0"
 
 [[package]]
 name = "equivalent"
@@ -90,6 +90,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9229cfe53dfd69f0609a49f65461bd93001ea1ef889cd5529dd176593f5338a1"
 
 [[package]]
+name = "helpers"
+version = "0.1.0"
+
+[[package]]
 name = "indexmap"
 version = "2.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -98,6 +102,10 @@ dependencies = [
  "equivalent",
  "hashbrown",
 ]
+
+[[package]]
+name = "intcode"
+version = "0.1.0"
 
 [[package]]
 name = "memchr"
