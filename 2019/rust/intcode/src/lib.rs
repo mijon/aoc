@@ -1,9 +1,18 @@
+//! Intcode Implementation
+//!
+//! The plan is to have a library that manages all the intcode programs. Over the course of the 2019
+//! AoC, I will add to this library. The intention is that the full intcode VM will be specified
+//! here and over time more features will be included.
 #![allow(dead_code)]
 
+/// Represents the state of the Intcode program
 #[derive(PartialEq, Debug, Clone)]
 pub struct IntcodeState {
+    /// The vector of intcodes
     pub program: Vec<i64>,
+    /// The 'current' position
     head: usize,
+    /// Whether the program has terminated (used for stopping evaluation)
     terminated: bool,
 }
 
@@ -48,9 +57,6 @@ pub fn run_intcode(mut s: IntcodeState) -> IntcodeState {
         }
         s = s.step_intcode();
     }
-    // while !&s.terminated {
-    //     s.step_intcode();
-    // }
     s
 }
 
@@ -66,8 +72,6 @@ impl IntcodeState {
                 self.head = self.head + 4;
             }
             Opcode::Multiply(_) => {
-                // println!("mul");
-                // println!("{:?}", self);
                 let a = self.program[self.head + 1];
                 let b = self.program[self.head + 2];
                 let target_pos = self.program[self.head + 3] as usize;
@@ -75,13 +79,9 @@ impl IntcodeState {
                 self.head = self.head + 4;
             }
             Opcode::Stop(_) => {
-                // println!("stop");
-                // println!("{:?}", self);
                 self.terminated = true;
             }
             Opcode::Value(_) => {
-                // println!("val: {v}");
-                // println!("{:?}", self);
                 self.head = self.head + 1;
             }
         }
