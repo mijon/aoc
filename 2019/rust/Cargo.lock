@@ -27,6 +27,10 @@ dependencies = [
 [[package]]
 name = "day_02"
 version = "0.1.0"
+dependencies = [
+ "helpers",
+ "intcode",
+]
 
 [[package]]
 name = "equivalent"
@@ -92,6 +96,9 @@ checksum = "9229cfe53dfd69f0609a49f65461bd93001ea1ef889cd5529dd176593f5338a1"
 [[package]]
 name = "helpers"
 version = "0.1.0"
+dependencies = [
+ "rstest",
+]
 
 [[package]]
 name = "indexmap"
@@ -106,6 +113,9 @@ dependencies = [
 [[package]]
 name = "intcode"
 version = "0.1.0"
+dependencies = [
+ "rstest",
+]
 
 [[package]]
 name = "memchr"
