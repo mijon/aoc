@@ -23,13 +23,19 @@ pub struct Instruction {
 pub type InstructionLine = Vec<Instruction>;
 pub type Instructions = Vec<InstructionLine>;
 
-#[derive(Debug, Copy, Clone)]
-pub struct Point {
-    pub x: i32,
-    pub y: i32,
-}
+// #[derive(Debug, Copy, Clone)]
+// pub struct Point {
+//     pub x: i32,
+//     pub y: i32,
+// }
 
-pub type LineSegment = (Point, Point);
+#[derive(Debug, PartialEq)]
+pub struct LineSegment {
+    pub x1: i32,
+    pub y1: i32,
+    pub x2: i32,
+    pub y2: i32,
+}
 
 pub type PathLine = Vec<LineSegment>;
 

@@ -1,52 +1,70 @@
-use crate::parsing::{Direction, Instruction, Point, p_instructions};
+use crate::parsing::{Direction, Instruction, LineSegment, p_instructions};
 
 pub fn solve(input: &str) -> i64 {
     let instructions = p_instructions(input).expect("Error parsing").1;
     println!("{}", instructions.len());
-    let paths: Vec<Vec<Point>> = instructions
+    let paths: Vec<Vec<LineSegment>> = instructions
         .into_iter()
-        .map(|l| -> Vec<Point> {
+        .map(|l| -> Vec<LineSegment> {
             l.into_iter()
-                .scan(Point { x: 0, y: 0 }, ins_to_pts)
+                .scan(
+                    LineSegment {
+                        x1: 0,
+                        y1: 0,
+                        x2: 0,
+                        y2: 0,
+                    },
+                    ins_to_line_seg,
+                )
                 .collect()
         })
         .collect();
+    println!("{:?}", paths);
     println!("{}", paths.len());
     4
 }
 
-fn ins_to_pts(cur_point: &mut Point, i: Instruction) -> Option<Point> {
+fn ins_to_line_seg(cur_ls: &mut LineSegment, i: Instruction) -> Option<LineSegment> {
     match i {
         Instruction {
             direction: Direction::Up,
             amount: a,
-        } => Some(Point {
-            x: cur_point.x,
-            y: cur_point.y + a,
+        } => Some(LineSegment {
+            x1: cur_ls.x2,
+            y1: cur_ls.y2,
+            x2: cur_ls.x2,
+            y2: cur_ls.y2 + a,
         }),
         Instruction {
             direction: Direction::Down,
             amount: a,
-        } => Some(Point {
-            x: cur_point.x,
-            y: cur_point.y - a,
+        } => Some(LineSegment {
+            x1: cur_ls.x2,
+            y1: cur_ls.y2,
+            x2: cur_ls.x1,
+            y2: cur_ls.y2 - a,
         }),
         Instruction {
             direction: Direction::Left,
             amount: a,
-        } => Some(Point {
-            x: cur_point.x - a,
-            y: cur_point.y,
+        } => Some(LineSegment {
+            x1: cur_ls.x2,
+            y1: cur_ls.y2,
+            x2: cur_ls.x1 - a,
+            y2: cur_ls.y2,
         }),
         Instruction {
             direction: Direction::Right,
             amount: a,
-        } => Some(Point {
-            x: cur_point.x + a,
-            y: cur_point.y,
+        } => Some(LineSegment {
+            x1: cur_ls.x2,
+            y1: cur_ls.y2,
+            x2: cur_ls.x1 + a,
+            y2: cur_ls.y2,
         }),
     }
 }
+
 #[cfg(test)]
 mod tests {
 
