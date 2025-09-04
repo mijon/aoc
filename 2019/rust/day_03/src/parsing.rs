@@ -29,7 +29,7 @@ pub type Instructions = Vec<InstructionLine>;
 //     pub y: i32,
 // }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct LineSegment {
     pub x1: i32,
     pub y1: i32,
