@@ -6,3 +6,4 @@ edition = "2024"
 [dependencies]
 helpers = { path = "../helpers"}
 nom = "8.0.0"
+rstest = "0.26.1"

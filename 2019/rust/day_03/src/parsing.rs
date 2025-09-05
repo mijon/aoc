@@ -47,9 +47,9 @@ pub struct LineSegment {
 impl LineSegment {
     pub fn new(x1: i32, y1: i32, x2: i32, y2: i32) -> Self {
         let orientation = if x1 == x2 {
-            Orientation::Horizontal
-        } else {
             Orientation::Vertical
+        } else {
+            Orientation::Horizontal
         };
 
         Self {
@@ -143,5 +143,12 @@ mod tests {
                 ]
             ))
         )
+    }
+
+    #[test]
+    fn test_orientation() {
+        let expected = Orientation::Vertical;
+        let ls = LineSegment::new(3, 1, 3, 4);
+        assert_eq!(expected, ls.orientation)
     }
 }
