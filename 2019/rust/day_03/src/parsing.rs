@@ -30,11 +30,36 @@ pub type Instructions = Vec<InstructionLine>;
 // }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
+pub enum Orientation {
+    Vertical,
+    Horizontal,
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct LineSegment {
     pub x1: i32,
     pub y1: i32,
     pub x2: i32,
     pub y2: i32,
+    pub orientation: Orientation,
+}
+
+impl LineSegment {
+    pub fn new(x1: i32, y1: i32, x2: i32, y2: i32) -> Self {
+        let orientation = if x1 == x2 {
+            Orientation::Horizontal
+        } else {
+            Orientation::Vertical
+        };
+
+        Self {
+            x1,
+            y1,
+            x2,
+            y2,
+            orientation,
+        }
+    }
 }
 
 pub type PathLine = Vec<LineSegment>;

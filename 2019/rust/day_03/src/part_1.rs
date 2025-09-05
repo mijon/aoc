@@ -8,39 +8,19 @@ pub fn solve(input: &str) -> i64 {
             Instruction {
                 direction: Direction::Up,
                 amount: a,
-            } => LineSegment {
-                x1: cur_x,
-                y1: cur_y,
-                x2: cur_x,
-                y2: cur_y + a,
-            },
+            } => LineSegment::new(cur_x, cur_y, cur_x, cur_y + a),
             Instruction {
                 direction: Direction::Down,
                 amount: a,
-            } => LineSegment {
-                x1: cur_x,
-                y1: cur_y,
-                x2: cur_x,
-                y2: cur_y - a,
-            },
+            } => LineSegment::new(cur_x, cur_y, cur_x, cur_y - a),
             Instruction {
                 direction: Direction::Left,
                 amount: a,
-            } => LineSegment {
-                x1: cur_x,
-                y1: cur_y,
-                x2: cur_x - a,
-                y2: cur_y,
-            },
+            } => LineSegment::new(cur_x, cur_y, cur_x - a, cur_y),
             Instruction {
                 direction: Direction::Right,
                 amount: a,
-            } => LineSegment {
-                x1: cur_x,
-                y1: cur_y,
-                x2: cur_x + a,
-                y2: cur_y,
-            },
+            } => LineSegment::new(cur_x, cur_y, cur_x + a, cur_y),
         };
         Some(*cur_ls)
     };
@@ -49,15 +29,7 @@ pub fn solve(input: &str) -> i64 {
         .into_iter()
         .map(|l| -> Vec<LineSegment> {
             l.into_iter()
-                .scan(
-                    LineSegment {
-                        x1: 0,
-                        y1: 0,
-                        x2: 0,
-                        y2: 0,
-                    },
-                    ins_to_line_seg,
-                )
+                .scan(LineSegment::new(0, 0, 0, 0), ins_to_line_seg)
                 .collect()
         })
         .collect();
