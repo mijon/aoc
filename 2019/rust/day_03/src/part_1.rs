@@ -4,8 +4,8 @@ use crate::parsing::{Direction, Instruction, LineSegment, Orientation, p_instruc
 
 pub fn solve(input: &str) -> i32 {
     let ins_to_line_seg = |cur_ls: &mut LineSegment, i: Instruction| -> Option<LineSegment> {
-        let cur_x = (*cur_ls).x2;
-        let cur_y = (*cur_ls).y2;
+        let cur_x = (cur_ls).x2;
+        let cur_y = (cur_ls).y2;
         *cur_ls = match i {
             Instruction {
                 direction: Direction::Up,
@@ -39,9 +39,9 @@ pub fn solve(input: &str) -> i32 {
     let collected_intersections = paths[0]
         .iter()
         .cartesian_product(paths[1].iter())
-        .map(|a| get_intersection(&a.0, &a.1));
+        .map(|a| get_intersection(a.0, a.1));
 
-    let nearest_point = collected_intersections
+    collected_intersections
         .into_iter()
         .flatten()
         .collect::<Vec<(i32, i32)>>()
@@ -51,9 +51,7 @@ pub fn solve(input: &str) -> i32 {
         .into_iter()
         .filter(|x| *x != 0)
         .min()
-        .expect("Expected there to be some minimum point");
-
-    nearest_point
+        .expect("Expected there to be some minimum point")
 }
 
 fn manhatten_dist(p: (i32, i32)) -> i32 {
