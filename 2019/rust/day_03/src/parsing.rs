@@ -1,8 +1,12 @@
 #![allow(dead_code)]
 
 use nom::{
-    IResult, Parser, branch::alt, bytes::complete::tag, character::complete::i32,
-    multi::separated_list1, sequence::pair,
+    IResult, Parser,
+    branch::alt,
+    bytes::complete::tag,
+    character::complete::{i32, newline},
+    multi::separated_list1,
+    sequence::pair,
 };
 
 // Types
@@ -99,7 +103,7 @@ pub fn p_instructionline(input: &str) -> IResult<&str, InstructionLine> {
 }
 
 pub fn p_instructions(input: &str) -> IResult<&str, Instructions> {
-    separated_list1(tag("\n"), p_instructionline).parse(input)
+    separated_list1(newline, p_instructionline).parse(input)
 }
 
 #[cfg(test)]
