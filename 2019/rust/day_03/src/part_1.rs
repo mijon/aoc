@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 use crate::parsing::{Direction, Instruction, LineSegment, Orientation, p_instructions};
 
 pub fn solve(input: &str) -> i32 {
@@ -34,12 +36,10 @@ pub fn solve(input: &str) -> i32 {
         })
         .collect();
 
-    let mut collected_intersections = Vec::new();
-    for ls1 in &paths[0] {
-        for ls2 in &paths[1] {
-            collected_intersections.push(get_intersection(ls1, ls2))
-        }
-    }
+    let collected_intersections = paths[0]
+        .iter()
+        .cartesian_product(paths[1].iter())
+        .map(|a| get_intersection(&a.0, &a.1));
 
     let nearest_point = collected_intersections
         .into_iter()
