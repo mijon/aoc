@@ -9,23 +9,14 @@ fn main() {
     println!("part 2: {}", part_2::solve(&input)); // 
 }
 
-// // Including tests to ensure that as we change the intcode lib, we don't introduce breaking
-// // changes.
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//
-//     #[test]
-//     fn part_1_works() {
-//         let input = helpers::read_input("03").expect("unable to read input");
-//         let result = part_1::solve(&input);
-//         assert_eq!(result, 2842648);
-//     }
-//
-//     #[test]
-//     fn part_2_works() {
-//         let input = helpers::read_input("03").expect("unable to read input");
-//         let result = part_2::solve(&input);
-//         assert_eq!(result, 9074);
-//     }
-// }
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn part_1_works() {
+        let input = helpers::read_input("03").expect("unable to read input");
+        let result = part_1::solve(&input);
+        assert_eq!(result, 1626);
+    }
+}

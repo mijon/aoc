@@ -10,7 +10,7 @@ use nom::{
 };
 
 // Types
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Direction {
     Up,
     Down,
@@ -76,10 +76,16 @@ fn point(_input: &str) -> IResult<&str, &str> {
 // e.g. R75 -> Direction::Right
 fn p_direction(input: &str) -> IResult<&str, Direction> {
     alt((
+        // We can do this in two ways, tag -> map, or value(type, tag). The latter requires Clone
+        // on Direction, so for now, we'll leave it as tag -> map.
         tag("U").map(|_| Direction::Up),
         tag("D").map(|_| Direction::Down),
         tag("L").map(|_| Direction::Left),
         tag("R").map(|_| Direction::Right),
+        // value(Direction::Up, tag("U")),
+        // value(Direction::Down, tag("D")),
+        // value(Direction::Left, tag("L")),
+        // value(Direction::Right, tag("R")),
     ))
     .parse(input)
 }
