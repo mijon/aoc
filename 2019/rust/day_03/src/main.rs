@@ -19,4 +19,11 @@ mod tests {
         let result = part_1::solve(&input);
         assert_eq!(result, 1626);
     }
+
+    #[test]
+    fn part_2_works() {
+        let input = helpers::read_input("03").expect("unable to read input");
+        let result = part_2::solve(&input);
+        assert_eq!(result, 27330);
+    }
 }
