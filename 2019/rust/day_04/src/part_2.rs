@@ -15,20 +15,16 @@ fn check_value(i: &i32) -> bool {
     check_pair(&i_vec) && check_never_decrease(&i_vec)
 }
 
-fn check_never_decrease(i_vec: &Vec<i32>) -> bool {
-    i_vec
-        .windows(2)
-        .map(|n| n[1] - n[0] >= 0)
-        .fold(true, |acc, n| acc && n)
+fn check_never_decrease(i_vec: &[i32]) -> bool {
+    i_vec.windows(2).all(|n| n[1] - n[0] >= 0)
 }
 
-fn check_pair(i_vec: &Vec<i32>) -> bool {
+fn check_pair(i_vec: &[i32]) -> bool {
     // Take a vector, sort it, then partition it then y
     // i_vec_clone.sort();
     let max_counts = i_vec
         .chunk_by(|a, b| a == b)
         .map(|v| v.len())
-        .into_iter()
         .collect::<Vec<usize>>();
     max_counts.contains(&2)
 }
