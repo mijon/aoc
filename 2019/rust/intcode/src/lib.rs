@@ -69,20 +69,20 @@ impl IntcodeState {
                 let b = self.program[self.head + 2];
                 let target_pos = self.program[self.head + 3] as usize;
                 self.program[target_pos] = self.program[a as usize] + self.program[b as usize];
-                self.head = self.head + 4;
+                self.head += 4;
             }
             Opcode::Multiply(_) => {
                 let a = self.program[self.head + 1];
                 let b = self.program[self.head + 2];
                 let target_pos = self.program[self.head + 3] as usize;
                 self.program[target_pos] = self.program[a as usize] * self.program[b as usize];
-                self.head = self.head + 4;
+                self.head += 4;
             }
             Opcode::Stop(_) => {
                 self.terminated = true;
             }
             Opcode::Value(_) => {
-                self.head = self.head + 1;
+                self.head += 1;
             }
         }
         self
