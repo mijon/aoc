@@ -14,14 +14,18 @@ pub struct IntcodeState {
     head: usize,
     /// Whether the program has terminated (used for stopping evaluation)
     terminated: bool,
+    input: Vec<i64>,
+    output: Vec<i64>,
 }
 
 impl IntcodeState {
-    pub fn new(program: &str) -> Self {
+    pub fn new(program: &str, input: Vec<i64>) -> Self {
         Self {
             program: prep_program(program),
             head: 0,
             terminated: false,
+            input,
+            output: Vec::new(),
         }
     }
 }
@@ -39,6 +43,8 @@ pub enum Opcode {
     Multiply(i64),
     Stop(i64),
     Value(i64),
+    Input(i64),
+    Output(i64),
 }
 
 pub fn parse_intcode(v: i64) -> Opcode {
@@ -84,6 +90,8 @@ impl IntcodeState {
             Opcode::Value(_) => {
                 self.head += 1;
             }
+            Opcode::Input(_) => todo!(),
+            Opcode::Output(_) => todo!(),
         }
         self
     }
@@ -113,8 +121,10 @@ mod tests {
             program: vec![1, 1, 1],
             head: 0,
             terminated: false,
+            output: Vec::new(),
+            input: Vec::new(),
         };
-        assert_eq!(IntcodeState::new("1,1,1"), result);
+        assert_eq!(IntcodeState::new("1,1,1", Vec::new()), result);
     }
 
     #[test]
@@ -127,7 +137,7 @@ mod tests {
     fn test_update_program() {
         let result = vec![2, 0, 0, 0, 99];
         let input = "1,0,0,0,99";
-        let intcode_state = IntcodeState::new(input);
+        let intcode_state = IntcodeState::new(input, Vec::new());
         let edited_program = intcode_state.edit_program(0, 2);
         assert_eq!(edited_program.program, result);
     }
@@ -138,7 +148,7 @@ mod tests {
     #[case("2,4,4,5,99,0", vec![2,4,4,5,99,9801])]
     #[case("1,1,1,4,99,5,6,0,99", vec![30,1,1,4,2,5,6,0,99])]
     fn test_prog(#[case] input: &str, #[case] expected: Vec<i64>) {
-        let intcode_state = IntcodeState::new(input);
+        let intcode_state = IntcodeState::new(input, Vec::new());
         let run_program = run_intcode(intcode_state);
         assert_eq!(expected, run_program.program)
     }
