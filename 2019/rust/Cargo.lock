@@ -21,6 +21,7 @@ checksum = "2fd1289c04a9ea8cb22300a459a72a385d7c73d3259e2ed7dcb2af674838cfa9"
 name = "day_01"
 version = "0.1.0"
 dependencies = [
+ "helpers",
  "rstest",
 ]
 
@@ -38,6 +39,25 @@ version = "0.1.0"
 dependencies = [
  "helpers",
  "itertools",
+ "nom",
+ "rstest",
+]
+
+[[package]]
+name = "day_04"
+version = "0.1.0"
+dependencies = [
+ "helpers",
+ "nom",
+ "rstest",
+]
+
+[[package]]
+name = "day_05"
+version = "0.1.0"
+dependencies = [
+ "helpers",
+ "intcode",
  "nom",
  "rstest",
 ]
@@ -130,6 +150,7 @@ dependencies = [
 name = "intcode"
 version = "0.1.0"
 dependencies = [
+ "nom",
  "rstest",
 ]
 
