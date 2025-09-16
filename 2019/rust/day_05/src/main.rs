@@ -23,6 +23,6 @@ mod tests {
     fn part_2_works() {
         let input = helpers::read_input("05").expect("unable to read input");
         let result = part_2::solve(&input);
-        assert_eq!(result, 4);
+        assert_eq!(result, 8805067);
     }
 }
