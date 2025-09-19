@@ -21,7 +21,7 @@ fn main() -> Result<()> {
 
 #[derive(Debug, Default)]
 pub struct App {
-    intcode_state: Option<i32>,
+    intcode_state: Option<Vec<i32>>,
     counter: i32,
     exit: bool,
 }
@@ -61,7 +61,12 @@ impl App {
             inner_left_layout[0],
         );
         frame.render_widget(
-            Paragraph::new("Top Right").block(Block::new().borders(Borders::ALL)),
+            match &self.intcode_state {
+                Some(v) => {
+                    Paragraph::new(format!("{:?}", v)).block(Block::new().borders(Borders::ALL))
+                }
+                None => Paragraph::new("Top Right").block(Block::new().borders(Borders::ALL)),
+            },
             inner_right_layout[0],
         );
         frame.render_widget(
@@ -84,6 +89,7 @@ impl App {
         match key_event.code {
             KeyCode::Char('q') => self.exit(),
             KeyCode::Char('o') => self.open_file(),
+            KeyCode::Char('c') => self.close_file(),
             _ => {}
         }
     }
@@ -93,7 +99,11 @@ impl App {
     }
 
     fn open_file(&mut self) {
-        self.intcode_state = Some(2);
+        self.intcode_state = Some(vec![1, 2, 3, 4, 5]);
+    }
+
+    fn close_file(&mut self) {
+        self.intcode_state = None;
     }
 }
 
