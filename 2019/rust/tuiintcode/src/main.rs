@@ -1,12 +1,12 @@
 use color_eyre::Result;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use intcode::IntcodeState;
-use itertools::Itertools;
+// use itertools::Itertools;
 use ratatui::{
     DefaultTerminal, Frame,
     buffer::Buffer,
     layout::{Constraint, Direction, Layout, Rect},
-    style::Stylize,
+    style::{Style, Stylize},
     symbols::border,
     text::{Line, Span, Text},
     widgets::{Block, Borders, Paragraph, Widget},
@@ -72,7 +72,12 @@ impl App {
             inner_right_layout[0],
         );
         frame.render_widget(
-            Paragraph::new("Bottom Right").block(Block::new().borders(Borders::ALL)),
+            match &self.intcode_state {
+                Some(v) => {
+                    Paragraph::new(format!("{:?}", v)).block(Block::new().borders(Borders::ALL))
+                }
+                None => Paragraph::new("Bottom Right").block(Block::new().borders(Borders::ALL)),
+            },
             inner_right_layout[1],
         );
     }
@@ -92,7 +97,15 @@ impl App {
             KeyCode::Char('q') => self.exit(),
             KeyCode::Char('o') => self.open_file(),
             KeyCode::Char('c') => self.close_file(),
+            KeyCode::Char('n') => self.step(),
             _ => {}
+        }
+    }
+
+    fn step(&mut self) {
+        if let Some(s) = self.intcode_state.clone() {
+            let new_state = s.step_intcode();
+            self.intcode_state = Some(new_state);
         }
     }
 
@@ -101,7 +114,7 @@ impl App {
     }
 
     fn open_file(&mut self) {
-        self.intcode_state = Some(IntcodeState::new("3,9,8,9,10,9,4,9,99,-1,8", vec![0]));
+        self.intcode_state = Some(IntcodeState::new("3,0,4,0,99", vec![0]));
     }
 
     fn close_file(&mut self) {
@@ -110,17 +123,25 @@ impl App {
 }
 
 fn display_intcode(v: &IntcodeState) -> Line<'_> {
-    let mut program = v
-        .clone()
-        .program
-        .into_iter()
-        .map(|i| Span::raw(format!("{}", i)))
-        .intersperse(Span::from(", "))
-        .collect::<Vec<Span<'_>>>();
+    let head = v.head;
+    let head_style = Style::new().yellow().on_blue();
 
-    program[v.head] = program[v.head].clone().yellow().on_blue();
+    // TODO: Also will need to implement looking into the code and styling the parameters and other
+    // parts
+    let mut span_vec = vec![];
+    for i in 0..v.program.len() {
+        let prog_str = format!("{}", v.program[i]);
+        if i == head {
+            span_vec.push(Span::styled(prog_str, head_style))
+        } else {
+            span_vec.push(Span::raw(prog_str))
+        }
+        if i < (v.program.len() - 1) {
+            span_vec.push(Span::from(", "))
+        }
+    }
 
-    program.into()
+    Line::from(span_vec)
 }
 
 impl Widget for &App {
