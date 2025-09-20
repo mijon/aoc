@@ -1,13 +1,14 @@
 use color_eyre::Result;
-
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
+use intcode::IntcodeState;
+use itertools::Itertools;
 use ratatui::{
     DefaultTerminal, Frame,
     buffer::Buffer,
     layout::{Constraint, Direction, Layout, Rect},
     style::Stylize,
     symbols::border,
-    text::{Line, Text},
+    text::{Line, Span, Text},
     widgets::{Block, Borders, Paragraph, Widget},
 };
 
@@ -21,7 +22,7 @@ fn main() -> Result<()> {
 
 #[derive(Debug, Default)]
 pub struct App {
-    intcode_state: Option<Vec<i32>>,
+    intcode_state: Option<intcode::IntcodeState>,
     counter: i32,
     exit: bool,
 }
@@ -36,6 +37,7 @@ impl App {
     }
 
     fn draw(&self, frame: &mut Frame) {
+        // TODO: Refactor this out to make it simpler
         let outer_layout = Layout::default()
             .direction(Direction::Horizontal)
             .constraints(vec![Constraint::Percentage(20), Constraint::Percentage(80)])
@@ -63,7 +65,7 @@ impl App {
         frame.render_widget(
             match &self.intcode_state {
                 Some(v) => {
-                    Paragraph::new(format!("{:?}", v)).block(Block::new().borders(Borders::ALL))
+                    Paragraph::new(display_intcode(v)).block(Block::new().borders(Borders::ALL))
                 }
                 None => Paragraph::new("Top Right").block(Block::new().borders(Borders::ALL)),
             },
@@ -99,12 +101,26 @@ impl App {
     }
 
     fn open_file(&mut self) {
-        self.intcode_state = Some(vec![1, 2, 3, 4, 5]);
+        self.intcode_state = Some(IntcodeState::new("3,9,8,9,10,9,4,9,99,-1,8", vec![0]));
     }
 
     fn close_file(&mut self) {
         self.intcode_state = None;
     }
+}
+
+fn display_intcode(v: &IntcodeState) -> Line<'_> {
+    let mut program = v
+        .clone()
+        .program
+        .into_iter()
+        .map(|i| Span::raw(format!("{}", i)))
+        .intersperse(Span::from(", "))
+        .collect::<Vec<Span<'_>>>();
+
+    program[v.head] = program[v.head].clone().yellow().on_blue();
+
+    program.into()
 }
 
 impl Widget for &App {
