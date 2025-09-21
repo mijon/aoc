@@ -4,12 +4,10 @@ use intcode::IntcodeState;
 // use itertools::Itertools;
 use ratatui::{
     DefaultTerminal, Frame,
-    buffer::Buffer,
-    layout::{Constraint, Direction, Layout, Rect},
+    layout::{Constraint, Direction, Layout},
     style::{Style, Stylize},
-    symbols::border,
-    text::{Line, Span, Text, ToSpan},
-    widgets::{Block, Borders, Paragraph, Widget},
+    text::{Line, Span, ToSpan},
+    widgets::{Block, Borders, Paragraph},
 };
 
 fn main() -> Result<()> {
@@ -23,7 +21,6 @@ fn main() -> Result<()> {
 #[derive(Debug, Default)]
 pub struct App {
     intcode_state: Option<intcode::IntcodeState>,
-    counter: i32,
     exit: bool,
     history: Vec<IntcodeState>,
 }
@@ -195,33 +192,6 @@ fn display_intcode(v: &IntcodeState) -> Line<'_> {
     }
 
     Line::from(span_vec)
-}
-
-impl Widget for &App {
-    fn render(self, area: Rect, buf: &mut Buffer) {
-        let title = Line::from(" IntCode Viewer ".bold());
-        let instructions = Line::from(vec![
-            " Open File ".into(),
-            "<O>".blue().bold(),
-            " Quit ".into(),
-            "<Q> ".blue().bold(),
-        ]);
-        let block = Block::bordered()
-            .border_type(ratatui::widgets::BorderType::Rounded)
-            .title(title.centered())
-            .title_bottom(instructions.centered())
-            .border_set(border::THICK);
-
-        let counter_text = Text::from(vec![Line::from(vec![
-            "Value: ".into(),
-            self.counter.to_string().yellow(),
-        ])]);
-
-        Paragraph::new(counter_text)
-            .centered()
-            .block(block)
-            .render(area, buf);
-    }
 }
 
 // #[cfg(test)]
