@@ -38,6 +38,7 @@ impl App {
     }
 
     fn draw(&self, frame: &mut Frame) {
+        // ---- Layout ----
         // TODO: Refactor this out to make it simpler
         let outer_layout = Layout::default()
             .direction(Direction::Horizontal)
@@ -54,49 +55,75 @@ impl App {
             .constraints(vec![Constraint::Percentage(70), Constraint::Percentage(30)])
             .split(outer_layout[1]);
 
-        // frame.render_widget(self, inner_right_layout[0]);
-        frame.render_widget(
-            Paragraph::new("Bottom Left").block(
-                Block::new()
-                    .border_type(ratatui::widgets::BorderType::Rounded)
-                    .borders(Borders::ALL),
-            ),
-            inner_left_layout[1],
-        );
-        frame.render_widget(
-            Paragraph::new("Top Left").block(
-                Block::new()
-                    .border_type(ratatui::widgets::BorderType::Rounded)
-                    .borders(Borders::ALL),
-            ),
-            inner_left_layout[0],
-        );
-        frame.render_widget(
-            match &self.intcode_state {
-                Some(v) => Paragraph::new(display_intcode(v)).block(
-                    Block::new()
-                        .title(" Intcode Program ".to_span().into_centered_line())
-                        .border_type(ratatui::widgets::BorderType::Rounded)
-                        .borders(Borders::ALL),
-                ),
-                None => Paragraph::new("Top Right").block(
-                    Block::new()
-                        .title(" Intcode Program ".to_span().into_centered_line())
-                        .border_type(ratatui::widgets::BorderType::Rounded)
-                        .borders(Borders::ALL),
-                ),
-            },
-            inner_right_layout[0],
-        );
-        frame.render_widget(
-            match &self.intcode_state {
-                Some(v) => {
-                    Paragraph::new(format!("{:?}", v)).block(Block::new().borders(Borders::ALL))
-                }
-                None => Paragraph::new("Bottom Right").block(Block::new().borders(Borders::ALL)),
-            },
-            inner_right_layout[1],
-        );
+        // ---- Layout ----
+        // Two conditions that we match on, The Some case where we have an intcode program loaded
+        // and the None case where we do not
+        match &self.intcode_state {
+            Some(v) => {
+                frame.render_widget(
+                    Paragraph::new(display_intcode(v)).block(
+                        Block::new()
+                            .title(" Intcode Program ".to_span().into_centered_line())
+                            .border_type(ratatui::widgets::BorderType::Rounded)
+                            .borders(Borders::ALL),
+                    ),
+                    inner_right_layout[0],
+                );
+                frame.render_widget(
+                    Paragraph::new("Bottom Left").block(
+                        Block::new()
+                            .border_type(ratatui::widgets::BorderType::Rounded)
+                            .borders(Borders::ALL),
+                    ),
+                    inner_left_layout[1],
+                );
+                frame.render_widget(
+                    Paragraph::new("Top Left").block(
+                        Block::new()
+                            .border_type(ratatui::widgets::BorderType::Rounded)
+                            .borders(Borders::ALL),
+                    ),
+                    inner_left_layout[0],
+                );
+
+                frame.render_widget(
+                    Paragraph::new(format!("{:?}", v)).block(Block::new().borders(Borders::ALL)),
+                    inner_right_layout[1],
+                );
+            }
+            None => {
+                frame.render_widget(
+                    Paragraph::new("Top Right").block(
+                        Block::new()
+                            .title(" Intcode Program ".to_span().into_centered_line())
+                            .border_type(ratatui::widgets::BorderType::Rounded)
+                            .borders(Borders::ALL),
+                    ),
+                    inner_right_layout[0],
+                );
+                frame.render_widget(
+                    Paragraph::new("Bottom Left").block(
+                        Block::new()
+                            .border_type(ratatui::widgets::BorderType::Rounded)
+                            .borders(Borders::ALL),
+                    ),
+                    inner_left_layout[1],
+                );
+                frame.render_widget(
+                    Paragraph::new("Top Left").block(
+                        Block::new()
+                            .border_type(ratatui::widgets::BorderType::Rounded)
+                            .borders(Borders::ALL),
+                    ),
+                    inner_left_layout[0],
+                );
+
+                frame.render_widget(
+                    Paragraph::new("Bottom Right").block(Block::new().borders(Borders::ALL)),
+                    inner_right_layout[1],
+                );
+            }
+        };
     }
 
     fn handle_events(&mut self) -> Result<()> {
