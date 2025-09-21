@@ -8,7 +8,7 @@ use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::{Style, Stylize},
     symbols::border,
-    text::{Line, Span, Text},
+    text::{Line, Span, Text, ToSpan},
     widgets::{Block, Borders, Paragraph, Widget},
 };
 
@@ -56,19 +56,35 @@ impl App {
 
         // frame.render_widget(self, inner_right_layout[0]);
         frame.render_widget(
-            Paragraph::new("Bottom Left").block(Block::new().borders(Borders::ALL)),
+            Paragraph::new("Bottom Left").block(
+                Block::new()
+                    .border_type(ratatui::widgets::BorderType::Rounded)
+                    .borders(Borders::ALL),
+            ),
             inner_left_layout[1],
         );
         frame.render_widget(
-            Paragraph::new("Top Left").block(Block::new().borders(Borders::ALL)),
+            Paragraph::new("Top Left").block(
+                Block::new()
+                    .border_type(ratatui::widgets::BorderType::Rounded)
+                    .borders(Borders::ALL),
+            ),
             inner_left_layout[0],
         );
         frame.render_widget(
             match &self.intcode_state {
-                Some(v) => {
-                    Paragraph::new(display_intcode(v)).block(Block::new().borders(Borders::ALL))
-                }
-                None => Paragraph::new("Top Right").block(Block::new().borders(Borders::ALL)),
+                Some(v) => Paragraph::new(display_intcode(v)).block(
+                    Block::new()
+                        .title(" Intcode Program ".to_span().into_centered_line())
+                        .border_type(ratatui::widgets::BorderType::Rounded)
+                        .borders(Borders::ALL),
+                ),
+                None => Paragraph::new("Top Right").block(
+                    Block::new()
+                        .title(" Intcode Program ".to_span().into_centered_line())
+                        .border_type(ratatui::widgets::BorderType::Rounded)
+                        .borders(Borders::ALL),
+                ),
             },
             inner_right_layout[0],
         );
@@ -164,6 +180,7 @@ impl Widget for &App {
             "<Q> ".blue().bold(),
         ]);
         let block = Block::bordered()
+            .border_type(ratatui::widgets::BorderType::Rounded)
             .title(title.centered())
             .title_bottom(instructions.centered())
             .border_set(border::THICK);
