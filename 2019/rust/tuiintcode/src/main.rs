@@ -25,6 +25,7 @@ pub struct App {
     intcode_state: Option<intcode::IntcodeState>,
     counter: i32,
     exit: bool,
+    history: Vec<IntcodeState>,
 }
 
 impl App {
@@ -97,13 +98,15 @@ impl App {
             KeyCode::Char('q') => self.exit(),
             KeyCode::Char('o') => self.open_file(),
             KeyCode::Char('c') => self.close_file(),
-            KeyCode::Char('n') => self.step(),
+            KeyCode::Char('n') => self.step_forward(),
+            KeyCode::Char('p') => self.step_backward(),
             _ => {}
         }
     }
 
-    fn step(&mut self) {
+    fn step_forward(&mut self) {
         if let Some(s) = self.intcode_state.clone() {
+            self.history.push(s.clone());
             let new_state = s.step_intcode();
             self.intcode_state = Some(new_state);
         }
@@ -119,6 +122,13 @@ impl App {
 
     fn close_file(&mut self) {
         self.intcode_state = None;
+    }
+
+    fn step_backward(&mut self) {
+        if self.history.len() > 0 {
+            let prev_state = self.history.pop().unwrap();
+            self.intcode_state = Some(prev_state);
+        }
     }
 }
 
