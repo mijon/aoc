@@ -5,7 +5,7 @@ use intcode::IntcodeState;
 use ratatui::{
     DefaultTerminal, Frame,
     layout::{Constraint, Direction, Layout},
-    style::{Style, Stylize},
+    style::{Style, Styled, Stylize},
     text::{Line, Span, ToSpan},
     widgets::{Block, Borders, Paragraph},
 };
@@ -181,15 +181,14 @@ fn display_intcode(v: &IntcodeState) -> Line<'_> {
     let mut span_vec = vec![];
     for i in 0..v.program.len() {
         let prog_str = format!("{}", v.program[i]);
-        if i == head {
-            span_vec.push(Span::styled(prog_str, head_style))
-        } else {
-            span_vec.push(Span::raw(prog_str))
-        }
+        span_vec.push(Span::raw(prog_str));
         if i < (v.program.len() - 1) {
             span_vec.push(Span::from(", "))
         }
     }
+
+    // Formatting for the various highlights
+    span_vec[head * 2] = span_vec[head * 2].clone().set_style(head_style);
 
     Line::from(span_vec)
 }
