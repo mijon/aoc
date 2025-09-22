@@ -1,6 +1,7 @@
 use color_eyre::Result;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
-use intcode::{IntcodeState, num_params, parse_intcode};
+use intcode::{IntcodeState, Opcode, ParameterMode, num_params, parse_intcode};
+// use itertools::Position;
 // use itertools::Itertools;
 use ratatui::{
     DefaultTerminal, Frame,
@@ -185,7 +186,11 @@ impl App {
     }
 
     fn open_file(&mut self) {
-        self.intcode_state = Some(IntcodeState::new("3,9,8,9,10,9,4,9,99,-1,8", vec![1000]));
+        // self.intcode_state = Some(IntcodeState::new("3,9,8,9,10,9,4,9,99,-1,8", vec![1000]));
+        self.intcode_state = Some(IntcodeState::new(
+            "3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0,0",
+            vec![1000],
+        ));
     }
 
     fn close_file(&mut self) {
@@ -203,7 +208,6 @@ impl App {
 fn display_intcode(v: &IntcodeState) -> Line<'_> {
     let head = v.head;
     let head_style = Style::new().yellow().on_blue();
-    let param_style = Style::new().blue();
 
     // TODO: Also will need to implement looking into the code and styling the parameters and other
     // parts
@@ -222,11 +226,50 @@ fn display_intcode(v: &IntcodeState) -> Line<'_> {
     let num_params = num_params(opcode) as usize;
 
     span_vec[head * 2] = span_vec[head * 2].clone().set_style(head_style);
+    let styles = style_opcode(opcode);
     for i in 1..=num_params {
-        span_vec[(head + i) * 2] = span_vec[(head + i) * 2].clone().set_style(param_style);
+        span_vec[(head + i) * 2] = span_vec[(head + i) * 2].clone().set_style(styles[i - 1]);
     }
 
     Line::from(span_vec)
+}
+
+fn style_opcode(o: Opcode) -> Vec<Style> {
+    match o {
+        Opcode::Add(a, b, c) => vec![
+            style_parameter_mode(a),
+            style_parameter_mode(b),
+            style_parameter_mode(c),
+        ],
+        Opcode::Multiply(a, b, c) => vec![
+            style_parameter_mode(a),
+            style_parameter_mode(b),
+            style_parameter_mode(c),
+        ],
+        Opcode::Input(a) => vec![style_parameter_mode(a)],
+        Opcode::Output(a) => vec![style_parameter_mode(a)],
+        Opcode::JumpIfTrue(a, b) => vec![style_parameter_mode(a), style_parameter_mode(b)],
+        Opcode::JumpIfFalse(a, b) => vec![style_parameter_mode(a), style_parameter_mode(b)],
+        Opcode::LessThan(a, b, c) => vec![
+            style_parameter_mode(a),
+            style_parameter_mode(b),
+            style_parameter_mode(c),
+        ],
+        Opcode::Equals(a, b, c) => vec![
+            style_parameter_mode(a),
+            style_parameter_mode(b),
+            style_parameter_mode(c),
+        ],
+        Opcode::Stop => vec![],
+        Opcode::Value(_) => vec![],
+    }
+}
+
+fn style_parameter_mode(pm: ParameterMode) -> Style {
+    match pm {
+        ParameterMode::Immediate => Style::new().red(),
+        ParameterMode::Position => Style::new().blue(),
+    }
 }
 
 // #[cfg(test)]
