@@ -23,6 +23,14 @@ pub struct App {
     intcode_state: Option<intcode::IntcodeState>,
     exit: bool,
     history: Vec<IntcodeState>,
+    input_mode: InputMode,
+}
+
+#[derive(Debug, Default)]
+enum InputMode {
+    #[default]
+    Viewing,
+    LoadingFile,
 }
 
 impl App {
@@ -38,19 +46,24 @@ impl App {
         // ---- Layout ----
         // TODO: Refactor this out to make it simpler
         let outer_layout = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints(vec![Constraint::Fill(1), Constraint::Max(1)])
+            .split(frame.area());
+
+        let penultimate_layout = Layout::default()
             .direction(Direction::Horizontal)
             .constraints(vec![Constraint::Percentage(20), Constraint::Percentage(80)])
-            .split(frame.area());
+            .split(outer_layout[0]);
 
         let inner_left_layout = Layout::default()
             .direction(Direction::Vertical)
             .constraints(vec![Constraint::Percentage(50), Constraint::Percentage(50)])
-            .split(outer_layout[0]);
+            .split(penultimate_layout[0]);
 
         let inner_right_layout = Layout::default()
             .direction(Direction::Vertical)
             .constraints(vec![Constraint::Percentage(70), Constraint::Percentage(30)])
-            .split(outer_layout[1]);
+            .split(penultimate_layout[1]);
 
         // ---- Layout ----
         // Two conditions that we match on, The Some case where we have an intcode program loaded
@@ -130,6 +143,12 @@ impl App {
                 );
             }
         };
+        match self.input_mode {
+            InputMode::Viewing => {
+                frame.render_widget(Paragraph::new("input here"), outer_layout[1])
+            }
+            InputMode::LoadingFile => todo!(),
+        };
     }
 
     fn handle_events(&mut self) -> Result<()> {
@@ -166,7 +185,7 @@ impl App {
     }
 
     fn open_file(&mut self) {
-        self.intcode_state = Some(IntcodeState::new("3,9,8,9,10,9,4,9,99,-1,8", vec![0]));
+        self.intcode_state = Some(IntcodeState::new("3,9,8,9,10,9,4,9,99,-1,8", vec![1000]));
     }
 
     fn close_file(&mut self) {
