@@ -84,11 +84,12 @@ impl App {
                 );
 
                 frame.render_widget(
-                    Paragraph::new(format!("{:?}", v)).block(
-                        Block::new()
-                            .border_type(ratatui::widgets::BorderType::Rounded)
-                            .borders(Borders::ALL),
-                    ),
+                    Paragraph::new(format!("{:?}\n{:?}", v, parse_intcode(v.program[v.head])))
+                        .block(
+                            Block::new()
+                                .border_type(ratatui::widgets::BorderType::Rounded)
+                                .borders(Borders::ALL),
+                        ),
                     inner_right_layout[1],
                 );
             }
