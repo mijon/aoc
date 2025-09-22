@@ -1,6 +1,6 @@
 use color_eyre::Result;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
-use intcode::IntcodeState;
+use intcode::{IntcodeState, num_params, parse_intcode};
 // use itertools::Itertools;
 use ratatui::{
     DefaultTerminal, Frame,
@@ -84,7 +84,11 @@ impl App {
                 );
 
                 frame.render_widget(
-                    Paragraph::new(format!("{:?}", v)).block(Block::new().borders(Borders::ALL)),
+                    Paragraph::new(format!("{:?}", v)).block(
+                        Block::new()
+                            .border_type(ratatui::widgets::BorderType::Rounded)
+                            .borders(Borders::ALL),
+                    ),
                     inner_right_layout[1],
                 );
             }
@@ -116,7 +120,11 @@ impl App {
                 );
 
                 frame.render_widget(
-                    Paragraph::new("Bottom Right").block(Block::new().borders(Borders::ALL)),
+                    Paragraph::new("Bottom Right").block(
+                        Block::new()
+                            .border_type(ratatui::widgets::BorderType::Rounded)
+                            .borders(Borders::ALL),
+                    ),
                     inner_right_layout[1],
                 );
             }
@@ -157,7 +165,7 @@ impl App {
     }
 
     fn open_file(&mut self) {
-        self.intcode_state = Some(IntcodeState::new("3,0,4,0,99", vec![0]));
+        self.intcode_state = Some(IntcodeState::new("3,9,8,9,10,9,4,9,99,-1,8", vec![0]));
     }
 
     fn close_file(&mut self) {
@@ -175,6 +183,7 @@ impl App {
 fn display_intcode(v: &IntcodeState) -> Line<'_> {
     let head = v.head;
     let head_style = Style::new().yellow().on_blue();
+    let param_style = Style::new().blue();
 
     // TODO: Also will need to implement looking into the code and styling the parameters and other
     // parts
@@ -188,7 +197,14 @@ fn display_intcode(v: &IntcodeState) -> Line<'_> {
     }
 
     // Formatting for the various highlights
+
+    let opcode = parse_intcode(v.program[head]);
+    let num_params = num_params(opcode) as usize;
+
     span_vec[head * 2] = span_vec[head * 2].clone().set_style(head_style);
+    for i in 1..=num_params {
+        span_vec[(head + i) * 2] = span_vec[(head + i) * 2].clone().set_style(param_style);
+    }
 
     Line::from(span_vec)
 }

@@ -10,18 +10,18 @@ use std::str;
 #[derive(PartialEq, Debug, Clone)]
 pub struct IntcodeState {
     /// The vector of intcodes
-    pub program: Vec<i32>,
+    pub program: Vec<i64>,
     /// The 'current' position
-    head: usize,
+    pub head: usize,
     /// Whether the program has terminated (used for stopping evaluation)
-    terminated: bool,
-    // input: VecDeque<i32>,
-    input: RepeatingInput,
-    pub output: Vec<i32>,
+    pub terminated: bool,
+    // input: VecDeque<i64>,
+    pub input: RepeatingInput,
+    pub output: Vec<i64>,
 }
 
 impl IntcodeState {
-    pub fn new(program: &str, input: Vec<i32>) -> Self {
+    pub fn new(program: &str, input: Vec<i64>) -> Self {
         Self {
             program: prep_program(program),
             head: 0,
@@ -34,18 +34,18 @@ impl IntcodeState {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-struct RepeatingInput {
-    values: Vec<i32>,
+pub struct RepeatingInput {
+    pub values: Vec<i64>,
 }
 
 impl RepeatingInput {
-    fn new(values: Vec<i32>) -> Self {
+    pub fn new(values: Vec<i64>) -> Self {
         Self { values }
     }
 }
 
 impl Iterator for RepeatingInput {
-    type Item = i32;
+    type Item = i64;
     fn next(&mut self) -> Option<Self::Item> {
         if self.values.len() > 1 {
             let output = self.values[0];
@@ -58,10 +58,10 @@ impl Iterator for RepeatingInput {
     }
 }
 
-fn prep_program(program: &str) -> Vec<i32> {
+fn prep_program(program: &str) -> Vec<i64> {
     program
         .split(',')
-        .map(|n| n.trim().parse::<i32>().expect("unable to parse number"))
+        .map(|n| n.trim().parse::<i64>().expect("unable to parse number"))
         .collect()
 }
 
@@ -82,11 +82,11 @@ pub enum Opcode {
     LessThan(ParameterMode, ParameterMode, ParameterMode), // 7
     Equals(ParameterMode, ParameterMode, ParameterMode), // 8
     Stop,                                             // 99
-    Value(i32),
+    Value(i64),
 }
 
 /// Break an integer into a vec of its digits, returning it reversed (123 -> [3,2,1])
-fn int_to_vec(n: i32) -> Vec<i32> {
+fn int_to_vec(n: i64) -> Vec<i64> {
     if n == 0 {
         return vec![0];
     }
@@ -101,14 +101,29 @@ fn int_to_vec(n: i32) -> Vec<i32> {
             Some(output)
         }
     })
-    .collect::<Vec<i32>>();
+    .collect::<Vec<i64>>();
 
     result.reverse();
     result
 }
 
+pub fn num_params(o: Opcode) -> i32 {
+    match o {
+        Opcode::Add(..) => 3,
+        Opcode::Multiply(..) => 3,
+        Opcode::Input(..) => 1,
+        Opcode::Output(..) => 1,
+        Opcode::JumpIfTrue(..) => 3,
+        Opcode::JumpIfFalse(..) => 3,
+        Opcode::LessThan(..) => 3,
+        Opcode::Equals(..) => 3,
+        Opcode::Stop => 0,
+        Opcode::Value(_) => 1,
+    }
+}
+
 /// Convert an int to an intcode Opcode
-fn parse_intcode(n: i32) -> Opcode {
+pub fn parse_intcode(n: i64) -> Opcode {
     let mut rev_vec = int_to_vec(n);
     let op_int = rev_vec.pop().unwrap() + 10 * rev_vec.pop().unwrap_or(0);
     let mut modes = rev_vec
@@ -170,7 +185,7 @@ pub fn run_intcode(mut s: IntcodeState) -> IntcodeState {
 }
 
 impl IntcodeState {
-    fn step_intcode(mut self) -> Self {
+    pub fn step_intcode(mut self) -> Self {
         let current_opcode = parse_intcode(self.program[self.head]);
         // println!(
         //     "{current_opcode:?}, input: {:?}, output: {:?}, prog: {:?}",
@@ -180,11 +195,11 @@ impl IntcodeState {
             Opcode::Add(m1, m2, m3) => {
                 let a = match m1 {
                     ParameterMode::Position => self.program[self.head + 1],
-                    ParameterMode::Immediate => (self.head + 1) as i32,
+                    ParameterMode::Immediate => (self.head + 1) as i64,
                 };
                 let b = match m2 {
                     ParameterMode::Position => self.program[self.head + 2],
-                    ParameterMode::Immediate => (self.head + 2) as i32,
+                    ParameterMode::Immediate => (self.head + 2) as i64,
                 };
                 let target_pos = match m3 {
                     ParameterMode::Position => self.program[self.head + 3] as usize,
@@ -196,16 +211,20 @@ impl IntcodeState {
             Opcode::Multiply(m1, m2, m3) => {
                 let a = match m1 {
                     ParameterMode::Position => self.program[self.head + 1],
-                    ParameterMode::Immediate => (self.head + 1) as i32,
+                    ParameterMode::Immediate => (self.head + 1) as i64,
                 };
                 let b = match m2 {
                     ParameterMode::Position => self.program[self.head + 2],
-                    ParameterMode::Immediate => (self.head + 2) as i32,
+                    ParameterMode::Immediate => (self.head + 2) as i64,
                 };
                 let target_pos = match m3 {
                     ParameterMode::Position => self.program[self.head + 3] as usize,
                     ParameterMode::Immediate => self.head + 3,
                 };
+                println!(
+                    "{} * {}",
+                    self.program[a as usize], self.program[b as usize]
+                );
                 self.program[target_pos] = self.program[a as usize] * self.program[b as usize];
                 self.head += 4;
             }
@@ -236,7 +255,7 @@ impl IntcodeState {
             Opcode::JumpIfTrue(m1, m2) => {
                 let a = match m1 {
                     ParameterMode::Position => self.program[self.head + 1],
-                    ParameterMode::Immediate => (self.head + 1) as i32,
+                    ParameterMode::Immediate => (self.head + 1) as i64,
                 };
                 let b = match m2 {
                     ParameterMode::Position => self.program[self.head + 2] as usize,
@@ -251,7 +270,7 @@ impl IntcodeState {
             Opcode::JumpIfFalse(m1, m2) => {
                 let a = match m1 {
                     ParameterMode::Position => self.program[self.head + 1],
-                    ParameterMode::Immediate => (self.head + 1) as i32,
+                    ParameterMode::Immediate => (self.head + 1) as i64,
                 };
                 let b = match m2 {
                     ParameterMode::Position => self.program[self.head + 2] as usize,
@@ -266,11 +285,11 @@ impl IntcodeState {
             Opcode::LessThan(m1, m2, m3) => {
                 let a = match m1 {
                     ParameterMode::Position => self.program[self.head + 1],
-                    ParameterMode::Immediate => (self.head + 1) as i32,
+                    ParameterMode::Immediate => (self.head + 1) as i64,
                 };
                 let b = match m2 {
                     ParameterMode::Position => self.program[self.head + 2],
-                    ParameterMode::Immediate => (self.head + 2) as i32,
+                    ParameterMode::Immediate => (self.head + 2) as i64,
                 };
                 let c = match m3 {
                     ParameterMode::Position => self.program[self.head + 3] as usize,
@@ -286,11 +305,11 @@ impl IntcodeState {
             Opcode::Equals(m1, m2, m3) => {
                 let a = match m1 {
                     ParameterMode::Position => self.program[self.head + 1],
-                    ParameterMode::Immediate => (self.head + 1) as i32,
+                    ParameterMode::Immediate => (self.head + 1) as i64,
                 };
                 let b = match m2 {
                     ParameterMode::Position => self.program[self.head + 2],
-                    ParameterMode::Immediate => (self.head + 2) as i32,
+                    ParameterMode::Immediate => (self.head + 2) as i64,
                 };
                 let c = match m3 {
                     ParameterMode::Position => self.program[self.head + 3] as usize,
@@ -313,8 +332,13 @@ impl IntcodeState {
 }
 
 impl IntcodeState {
-    pub fn edit_program(mut self, idx: usize, val: i32) -> Self {
+    pub fn edit_program(mut self, idx: usize, val: i64) -> Self {
         self.program[idx] = val;
+        self
+    }
+
+    pub fn reset_input(mut self, input: RepeatingInput) -> Self {
+        self.input = input;
         self
     }
 }
@@ -384,7 +408,7 @@ mod tests {
     #[case("2,3,0,3,99", vec![2,3,0,6,99])]
     #[case("2,4,4,5,99,0", vec![2,4,4,5,99,9801])]
     #[case("1,1,1,4,99,5,6,0,99", vec![30,1,1,4,2,5,6,0,99])]
-    fn test_prog(#[case] input: &str, #[case] expected: Vec<i32>) {
+    fn test_prog(#[case] input: &str, #[case] expected: Vec<i64>) {
         let intcode_state = IntcodeState::new(input, Vec::new());
         let run_program = run_intcode(intcode_state);
         assert_eq!(expected, run_program.program)
