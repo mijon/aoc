@@ -25,6 +25,14 @@ pub struct App {
     exit: bool,
     history: Vec<IntcodeState>,
     input_mode: InputMode,
+    code_nums: CodeNums, // TODO: change this to an enum probably
+}
+
+#[derive(Debug, Default)]
+enum CodeNums {
+    #[default]
+    NoShow,
+    Show,
 }
 
 #[derive(Debug, Default)]
@@ -72,7 +80,7 @@ impl App {
         match &self.intcode_state {
             Some(v) => {
                 frame.render_widget(
-                    Paragraph::new(display_intcode(v)).block(
+                    Paragraph::new(display_intcode(v, &self)).block(
                         Block::new()
                             .title(" Intcode Program ".to_span().into_centered_line())
                             .border_type(ratatui::widgets::BorderType::Rounded)
@@ -81,7 +89,7 @@ impl App {
                     inner_right_layout[0],
                 );
                 frame.render_widget(
-                    Paragraph::new("Bottom Left").block(
+                    Paragraph::new(format!("{:?}", v.output)).block(
                         Block::new()
                             .border_type(ratatui::widgets::BorderType::Rounded)
                             .borders(Borders::ALL),
@@ -89,7 +97,7 @@ impl App {
                     inner_left_layout[1],
                 );
                 frame.render_widget(
-                    Paragraph::new("Top Left").block(
+                    Paragraph::new(format!("{:?}", v.input)).block(
                         Block::new()
                             .border_type(ratatui::widgets::BorderType::Rounded)
                             .borders(Borders::ALL),
@@ -98,12 +106,12 @@ impl App {
                 );
 
                 frame.render_widget(
-                    Paragraph::new(format!("{:?}\n{:?}", v, parse_intcode(v.program[v.head])))
-                        .block(
-                            Block::new()
-                                .border_type(ratatui::widgets::BorderType::Rounded)
-                                .borders(Borders::ALL),
-                        ),
+                    // Paragraph::new(format!("{:?}\n{:?}", v, parse_intcode(v.program[v.head])))
+                    Paragraph::new(format!("{:?}", parse_intcode(v.program[v.head]))).block(
+                        Block::new()
+                            .border_type(ratatui::widgets::BorderType::Rounded)
+                            .borders(Borders::ALL),
+                    ),
                     inner_right_layout[1],
                 );
             }
@@ -169,6 +177,7 @@ impl App {
             KeyCode::Char('c') => self.close_file(),
             KeyCode::Char('n') => self.step_forward(),
             KeyCode::Char('p') => self.step_backward(),
+            KeyCode::Char('t') => self.toggle_code_nums(),
             _ => {}
         }
     }
@@ -203,9 +212,16 @@ impl App {
             self.intcode_state = Some(prev_state);
         }
     }
+
+    fn toggle_code_nums(&mut self) {
+        self.code_nums = match &self.code_nums {
+            CodeNums::Show => CodeNums::NoShow,
+            CodeNums::NoShow => CodeNums::Show,
+        }
+    }
 }
 
-fn display_intcode(v: &IntcodeState) -> Line<'_> {
+fn display_intcode<'a>(v: &'a IntcodeState, app: &'a App) -> Line<'a> {
     let head = v.head;
     let head_style = Style::new().yellow().on_blue();
 
@@ -213,8 +229,19 @@ fn display_intcode(v: &IntcodeState) -> Line<'_> {
     // parts
     let mut span_vec = vec![];
     for i in 0..v.program.len() {
-        let prog_str = format!("{}", v.program[i]);
-        span_vec.push(Span::raw(prog_str));
+        match app.code_nums {
+            CodeNums::Show => {
+                // format!("{}: ", i).into(),
+                // format!("{}", v.program[i]).into(),
+                let prog_str = pad_to_width(i, v.program[i]);
+                span_vec.push(Span::raw(prog_str));
+            }
+            CodeNums::NoShow => {
+                let prog_str = format!("{}", v.program[i]);
+                span_vec.push(Span::raw(prog_str));
+            }
+        };
+
         if i < (v.program.len() - 1) {
             span_vec.push(Span::from(", "))
         }
@@ -232,6 +259,19 @@ fn display_intcode(v: &IntcodeState) -> Line<'_> {
     }
 
     Line::from(span_vec)
+}
+
+fn pad_to_width(i: usize, ref_str: i64) -> String {
+    let i_str = format!("{}", i as i32);
+    let width = format!("{}", ref_str).len() as i32;
+    let n_spaces = width - (i_str.len() as i32);
+
+    let mut output = String::new();
+    for n in 1..=n_spaces {
+        output.push_str(" ");
+    }
+    output.push_str(&i_str);
+    output
 }
 
 fn style_opcode(o: Opcode) -> Vec<Style> {
