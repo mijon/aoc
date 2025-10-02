@@ -1,0 +1,10 @@
+[package]
+name = "day_08"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+helpers = { path = "../helpers"}
+itertools = "0.14.0"
+nom = "8.0.0"
+rstest = "0.26.1"
