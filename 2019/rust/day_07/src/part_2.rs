@@ -10,10 +10,10 @@ pub fn solve(input: &str) -> i64 {
     *x
 }
 
+// Not super happy with these solution, there's a lot of repetition, but I'm not yet comfortable
+// with Rust enough to remove the repetitive code.
 pub fn run_through_once(input_prog: &str, p1: i64, p2: i64, p3: i64, p4: i64, p5: i64) -> i64 {
-    // Set up the inputs
-    // initialise the amps and run throug once
-
+    // initialise the amps and run through once
     let vp1 = vec![p1, 0];
     let mut amp1 = run_intcode_until(IntcodeState::new(input_prog, vp1), has_outputed);
     let mut result_from_1 = amp1.output.pop().expect("expected output");
@@ -44,6 +44,8 @@ pub fn run_through_once(input_prog: &str, p1: i64, p2: i64, p3: i64, p4: i64, p5
         );
         amp1 = run_intcode_until(amp1, has_outputed);
 
+        // This is very janky. This is first way I found to get the result to propagate through to
+        // come out the end
         result_from_1 = match amp1.output.pop() {
             Some(n) => n,
             None => amp1.input.next().unwrap(),
