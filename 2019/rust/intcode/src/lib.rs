@@ -113,8 +113,8 @@ pub fn num_params(o: Opcode) -> i32 {
         Opcode::Multiply(..) => 3,
         Opcode::Input(..) => 1,
         Opcode::Output(..) => 1,
-        Opcode::JumpIfTrue(..) => 3,
-        Opcode::JumpIfFalse(..) => 3,
+        Opcode::JumpIfTrue(..) => 2,
+        Opcode::JumpIfFalse(..) => 2,
         Opcode::LessThan(..) => 3,
         Opcode::Equals(..) => 3,
         Opcode::Stop => 0,
@@ -184,6 +184,19 @@ pub fn run_intcode(mut s: IntcodeState) -> IntcodeState {
     s
 }
 
+pub fn run_intcode_until<P>(mut s: IntcodeState, mut p: P) -> IntcodeState
+where
+    P: FnMut(&IntcodeState) -> bool,
+{
+    loop {
+        s = s.step_intcode();
+        if p(&s) {
+            break;
+        }
+    }
+    s
+}
+
 impl IntcodeState {
     pub fn step_intcode(mut self) -> Self {
         let current_opcode = parse_intcode(self.program[self.head]);
@@ -221,10 +234,10 @@ impl IntcodeState {
                     ParameterMode::Position => self.program[self.head + 3] as usize,
                     ParameterMode::Immediate => self.head + 3,
                 };
-                println!(
-                    "{} * {}",
-                    self.program[a as usize], self.program[b as usize]
-                );
+                // println!(
+                //     "{} * {}",
+                //     self.program[a as usize], self.program[b as usize]
+                // );
                 self.program[target_pos] = self.program[a as usize] * self.program[b as usize];
                 self.head += 4;
             }
@@ -341,6 +354,15 @@ impl IntcodeState {
         self.input = input;
         self
     }
+
+    pub fn current_opcode(&self) -> Opcode {
+        parse_intcode(self.program[self.head])
+    }
+}
+
+pub fn reset_input(mut is: IntcodeState, input: RepeatingInput) -> IntcodeState {
+    is.input = input;
+    is
 }
 
 #[cfg(test)]
@@ -447,5 +469,28 @@ mod tests {
         let intcode_state = IntcodeState::new(programstring, input);
         let run_program = run_intcode(intcode_state);
         assert_eq!(0, run_program.output[0])
+    }
+
+    #[test]
+    fn test_early_stop() {
+        let programstring = "3,0,4,0,99";
+        let input = vec![10];
+        let intcode_state = IntcodeState::new(programstring, input);
+        let run_program = run_intcode_until(intcode_state, |int_state| {
+            match int_state.current_opcode() {
+                Opcode::Output(_) => true,
+                _ => false,
+            }
+        });
+        assert_eq!(2, run_program.head);
+    }
+
+    #[test]
+    fn test_early_stop2() {
+        let programstring = "3,0,4,0,99";
+        let input = vec![10];
+        let intcode_state = IntcodeState::new(programstring, input);
+        let run_program = run_intcode_until(intcode_state, |int_state| int_state.output.len() > 0);
+        assert_eq!(10, run_program.output[0]);
     }
 }
