@@ -1,7 +1,7 @@
 use intcode::{IntcodeState, run_intcode};
 use itertools::Itertools;
 
-pub fn solve(input: &str) -> i32 {
+pub fn solve(input: &str) -> i64 {
     let mut output = Vec::new();
     for v in (0..=4).permutations(5) {
         output.push(run_through_once(input, v[0], v[1], v[2], v[3], v[4]))
@@ -9,7 +9,7 @@ pub fn solve(input: &str) -> i32 {
     output.iter().max().unwrap().unwrap()
 }
 
-fn run_through_once(input: &str, p1: i32, p2: i32, p3: i32, p4: i32, p5: i32) -> Option<i32> {
+fn run_through_once(input: &str, p1: i64, p2: i64, p3: i64, p4: i64, p5: i64) -> Option<i64> {
     let amp1 = IntcodeState::new(input, vec![p1, 0]);
     let mut intermediate1 = run_intcode(amp1).output;
     let result1 = intermediate1.pop()?;
@@ -28,9 +28,7 @@ fn run_through_once(input: &str, p1: i32, p2: i32, p3: i32, p4: i32, p5: i32) ->
 
     let amp5 = IntcodeState::new(input, vec![p5, result4]);
     let mut intermediate5 = run_intcode(amp5).output;
-    let result5 = intermediate5.pop();
-
-    result5
+    intermediate5.pop()
 }
 
 #[cfg(test)]
