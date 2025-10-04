@@ -5,6 +5,7 @@
 //! here and over time more features will be included.
 #![allow(dead_code)]
 
+use itertools::sorted;
 use std::collections::HashMap;
 use std::str;
 /// Represents the state of the Intcode program
@@ -280,6 +281,7 @@ impl IntcodeState {
             }
             Opcode::Input(m1) => {
                 // let input_val = self.input.pop_front().expect("Expected input!");
+                println!("{:?}", self.program);
                 let input_val = self.input.next().expect("Expected input!");
                 let target_pos = match m1 {
                     ParameterMode::Position => self.get_opcode_num(self.head + 1),
@@ -361,7 +363,7 @@ impl IntcodeState {
                 };
                 let c = match m3 {
                     ParameterMode::Position => self.get_opcode_num(self.head + 3),
-                    ParameterMode::Immediate => self.head + 4, // NOTE: I did change this from + 4
+                    ParameterMode::Immediate => self.head + 3, // NOTE: I did change this from + 4
                     ParameterMode::Relative => {
                         self.relative_base + self.get_opcode_num(self.head + 3)
                     }
@@ -390,7 +392,7 @@ impl IntcodeState {
                 };
                 let c = match m3 {
                     ParameterMode::Position => self.get_opcode_num(self.head + 3),
-                    ParameterMode::Immediate => self.head + 4, // NOTE: also changed this one
+                    ParameterMode::Immediate => self.head + 3, // NOTE: also changed this one
                     // from 4
                     ParameterMode::Relative => {
                         self.relative_base + self.get_opcode_num(self.head + 3)
@@ -448,6 +450,17 @@ impl IntcodeState {
 
     pub fn current_opcode(&self) -> Opcode {
         parse_intcode(self.get_opcode_num(self.head))
+    }
+
+    pub fn prog_to_vec(&self) -> Vec<(i64, i64)> {
+        let keys = self.program.keys();
+        let sorted_keys = sorted(keys);
+        let mut output: Vec<(i64, i64)> = Vec::new();
+
+        for k in sorted_keys {
+            output.push((*k, *self.program.get(k).unwrap()));
+        }
+        output
     }
 }
 
@@ -620,5 +633,14 @@ mod tests {
         let intcode_state = IntcodeState::new(programstring, input);
         let run_program = run_intcode(intcode_state);
         assert_eq!(expected, run_program.output)
+    }
+
+    #[test]
+    fn test_prog_to_vec() {
+        let programstring = "3,0,4,0,99";
+        let input = vec![];
+        let intcode_state = IntcodeState::new(programstring, input);
+        let expected = vec![(0, 3), (1, 0), (2, 4), (3, 0), (4, 99)];
+        assert_eq!(expected, intcode_state.prog_to_vec())
     }
 }
