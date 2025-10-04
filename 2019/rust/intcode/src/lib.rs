@@ -142,6 +142,7 @@ pub fn parse_intcode(n: i64) -> Opcode {
         .map(|n| match n {
             0 => ParameterMode::Position,
             1 => ParameterMode::Immediate,
+            2 => ParameterMode::Relative,
             _ => panic!("INTCODE ERROR: Unexpected mode int: {n} in {op_int}"), // probably dont want to panic here, but rather do
                                                                                 // None?
         })
@@ -220,18 +221,24 @@ impl IntcodeState {
             Opcode::Add(m1, m2, m3) => {
                 let a = match m1 {
                     ParameterMode::Position => self.get_opcode_num(self.head + 1),
-                    ParameterMode::Immediate => (self.head + 1) as i64,
-                    ParameterMode::Relative => todo!(),
+                    ParameterMode::Immediate => self.head + 1,
+                    ParameterMode::Relative => {
+                        self.relative_base + self.get_opcode_num(self.head + 1)
+                    }
                 };
                 let b = match m2 {
                     ParameterMode::Position => self.get_opcode_num(self.head + 2),
-                    ParameterMode::Immediate => (self.head + 2) as i64,
-                    ParameterMode::Relative => todo!(),
+                    ParameterMode::Immediate => self.head + 2,
+                    ParameterMode::Relative => {
+                        self.relative_base + self.get_opcode_num(self.head + 2)
+                    }
                 };
                 let target_pos = match m3 {
                     ParameterMode::Position => self.get_opcode_num(self.head + 3),
                     ParameterMode::Immediate => self.head + 3,
-                    ParameterMode::Relative => todo!(),
+                    ParameterMode::Relative => {
+                        self.relative_base + self.get_opcode_num(self.head + 3)
+                    }
                 };
                 self.set_opcode_num(target_pos, self.get_opcode_num(a) + self.get_opcode_num(b));
                 self.head += 4;
@@ -239,18 +246,24 @@ impl IntcodeState {
             Opcode::Multiply(m1, m2, m3) => {
                 let a = match m1 {
                     ParameterMode::Position => self.get_opcode_num(self.head + 1),
-                    ParameterMode::Immediate => (self.head + 1) as i64,
-                    ParameterMode::Relative => todo!(),
+                    ParameterMode::Immediate => self.head + 1,
+                    ParameterMode::Relative => {
+                        self.relative_base + self.get_opcode_num(self.head + 1)
+                    }
                 };
                 let b = match m2 {
                     ParameterMode::Position => self.get_opcode_num(self.head + 2),
-                    ParameterMode::Immediate => (self.head + 2) as i64,
-                    ParameterMode::Relative => todo!(),
+                    ParameterMode::Immediate => self.head + 2,
+                    ParameterMode::Relative => {
+                        self.relative_base + self.get_opcode_num(self.head + 2)
+                    }
                 };
                 let target_pos = match m3 {
                     ParameterMode::Position => self.get_opcode_num(self.head + 3),
                     ParameterMode::Immediate => self.head + 3,
-                    ParameterMode::Relative => todo!(),
+                    ParameterMode::Relative => {
+                        self.relative_base + self.get_opcode_num(self.head + 3)
+                    }
                 };
                 // println!(
                 //     "{} * {}",
@@ -271,7 +284,9 @@ impl IntcodeState {
                 let target_pos = match m1 {
                     ParameterMode::Position => self.get_opcode_num(self.head + 1),
                     ParameterMode::Immediate => self.head + 1,
-                    ParameterMode::Relative => todo!(),
+                    ParameterMode::Relative => {
+                        self.relative_base + self.get_opcode_num(self.head + 1)
+                    }
                 };
                 self.set_opcode_num(target_pos, input_val);
                 self.head += 2;
@@ -280,7 +295,9 @@ impl IntcodeState {
                 let target_pos = match m1 {
                     ParameterMode::Position => self.get_opcode_num(self.head + 1),
                     ParameterMode::Immediate => self.head + 1,
-                    ParameterMode::Relative => todo!(),
+                    ParameterMode::Relative => {
+                        self.relative_base + self.get_opcode_num(self.head + 1)
+                    }
                 };
                 self.output.push(self.get_opcode_num(target_pos));
                 self.head += 2;
@@ -288,13 +305,17 @@ impl IntcodeState {
             Opcode::JumpIfTrue(m1, m2) => {
                 let a = match m1 {
                     ParameterMode::Position => self.get_opcode_num(self.head + 1),
-                    ParameterMode::Immediate => (self.head + 1) as i64,
-                    ParameterMode::Relative => todo!(),
+                    ParameterMode::Immediate => self.head + 1,
+                    ParameterMode::Relative => {
+                        self.relative_base + self.get_opcode_num(self.head + 1)
+                    }
                 };
                 let b = match m2 {
                     ParameterMode::Position => self.get_opcode_num(self.head + 2),
                     ParameterMode::Immediate => self.head + 2,
-                    ParameterMode::Relative => todo!(),
+                    ParameterMode::Relative => {
+                        self.relative_base + self.get_opcode_num(self.head + 2)
+                    }
                 };
                 if self.get_opcode_num(a) != 0 {
                     self.head = self.get_opcode_num(b)
@@ -305,13 +326,17 @@ impl IntcodeState {
             Opcode::JumpIfFalse(m1, m2) => {
                 let a = match m1 {
                     ParameterMode::Position => self.get_opcode_num(self.head + 1),
-                    ParameterMode::Immediate => (self.head + 1) as i64,
-                    ParameterMode::Relative => todo!(),
+                    ParameterMode::Immediate => self.head + 1,
+                    ParameterMode::Relative => {
+                        self.relative_base + self.get_opcode_num(self.head + 1)
+                    }
                 };
                 let b = match m2 {
                     ParameterMode::Position => self.get_opcode_num(self.head + 2),
                     ParameterMode::Immediate => self.head + 2,
-                    ParameterMode::Relative => todo!(),
+                    ParameterMode::Relative => {
+                        self.relative_base + self.get_opcode_num(self.head + 2)
+                    }
                 };
                 if self.get_opcode_num(a) == 0 {
                     self.head = self.get_opcode_num(b)
@@ -322,18 +347,24 @@ impl IntcodeState {
             Opcode::LessThan(m1, m2, m3) => {
                 let a = match m1 {
                     ParameterMode::Position => self.get_opcode_num(self.head + 1),
-                    ParameterMode::Immediate => (self.head + 1) as i64,
-                    ParameterMode::Relative => todo!(),
+                    ParameterMode::Immediate => self.head + 1,
+                    ParameterMode::Relative => {
+                        self.relative_base + self.get_opcode_num(self.head + 1)
+                    }
                 };
                 let b = match m2 {
                     ParameterMode::Position => self.get_opcode_num(self.head + 2),
-                    ParameterMode::Immediate => (self.head + 2) as i64,
-                    ParameterMode::Relative => todo!(),
+                    ParameterMode::Immediate => self.head + 2,
+                    ParameterMode::Relative => {
+                        self.relative_base + self.get_opcode_num(self.head + 2)
+                    }
                 };
                 let c = match m3 {
                     ParameterMode::Position => self.get_opcode_num(self.head + 3),
-                    ParameterMode::Immediate => self.head + 4,
-                    ParameterMode::Relative => todo!(),
+                    ParameterMode::Immediate => self.head + 4, // NOTE: I did change this from + 4
+                    ParameterMode::Relative => {
+                        self.relative_base + self.get_opcode_num(self.head + 3)
+                    }
                 };
                 if self.get_opcode_num(a) < self.get_opcode_num(b) {
                     self.set_opcode_num(c, 1);
@@ -346,17 +377,24 @@ impl IntcodeState {
                 let a = match m1 {
                     ParameterMode::Position => self.get_opcode_num(self.head + 1),
                     ParameterMode::Immediate => (self.head + 1) as i64,
-                    ParameterMode::Relative => todo!(),
+                    ParameterMode::Relative => {
+                        self.relative_base + self.get_opcode_num(self.head + 1)
+                    }
                 };
                 let b = match m2 {
                     ParameterMode::Position => self.get_opcode_num(self.head + 2),
-                    ParameterMode::Immediate => (self.head + 2) as i64,
-                    ParameterMode::Relative => todo!(),
+                    ParameterMode::Immediate => self.head + 2,
+                    ParameterMode::Relative => {
+                        self.relative_base + self.get_opcode_num(self.head + 2)
+                    }
                 };
                 let c = match m3 {
                     ParameterMode::Position => self.get_opcode_num(self.head + 3),
-                    ParameterMode::Immediate => self.head + 4,
-                    ParameterMode::Relative => todo!(),
+                    ParameterMode::Immediate => self.head + 4, // NOTE: also changed this one
+                    // from 4
+                    ParameterMode::Relative => {
+                        self.relative_base + self.get_opcode_num(self.head + 3)
+                    }
                 };
                 // println!("{:?}", self.head + 1);
                 // println!("{:?}", a);
@@ -369,7 +407,17 @@ impl IntcodeState {
                 }
                 self.head += 4
             }
-            Opcode::UpdateRelativeBase(parameter_mode) => todo!(),
+            Opcode::UpdateRelativeBase(m1) => {
+                let a = match m1 {
+                    ParameterMode::Position => self.get_opcode_num(self.head + 1),
+                    ParameterMode::Immediate => self.head + 1,
+                    ParameterMode::Relative => {
+                        self.relative_base + self.get_opcode_num(self.head + 1)
+                    }
+                };
+                self.relative_base += a;
+                self.head += 2
+            }
         }
         self
     }
@@ -540,6 +588,26 @@ mod tests {
         let intcode_state = IntcodeState::new(programstring, input);
         let run_program = run_intcode_until(intcode_state, |int_state| int_state.output.len() > 0);
         assert_eq!(10, run_program.output[0]);
+    }
+
+    #[test]
+    fn test_16_dig_output() {
+        let programstring = "1102,34915192,34915192,7,4,7,99,0";
+        let expected = vec![1219070632396864];
+        let input = vec![];
+        let intcode_state = IntcodeState::new(programstring, input);
+        let run_program = run_intcode(intcode_state);
+        assert_eq!(expected, run_program.output)
+    }
+
+    #[test]
+    fn test_big_num() {
+        let programstring = "104,1125899906842624,99";
+        let expected = vec![1125899906842624];
+        let input = vec![];
+        let intcode_state = IntcodeState::new(programstring, input);
+        let run_program = run_intcode(intcode_state);
+        assert_eq!(expected, run_program.output)
     }
 
     #[test]
