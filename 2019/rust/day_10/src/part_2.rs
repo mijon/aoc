@@ -29,7 +29,7 @@ fn get_vec(input: &str, target_index: i32) -> IVec2 {
     let locations = parser::parse(input.into()).expect("parses").1;
     let processed_locations = locations_to_asteroid_infos(start_pos, locations);
     let output = sort_asteroids_by_rotation(processed_locations);
-    println!("{:?}", serde_json::to_string(&output));
+    // println!("{:?}", serde_json::to_string(&output));
     // println!("{:?}", output);
     // Couldn't figre out how to do this with an iterator and Map
     output[(target_index - 1) as usize].vec
