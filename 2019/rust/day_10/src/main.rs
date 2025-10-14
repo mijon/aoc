@@ -23,8 +23,8 @@ mod tests {
 
     #[test]
     fn part_2_works() {
-        let input = helpers::read_input("09").expect("unable to read input");
+        let input = helpers::read_input("10").expect("unable to read input");
         let result = part_2::solve(&input, 200);
-        assert_eq!(result, 4);
+        assert_eq!(result, 512);
     }
 }

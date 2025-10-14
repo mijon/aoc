@@ -24,7 +24,7 @@ fn get_vec(input: &str, target_index: i32) -> IVec2 {
     // use the machinery we made in part 1 to get the starting point. Obviously we could hard code
     // it, but where's the fun in that (and would make testing on the examples harder).
     let start_pos = part_1::process(input)[0].0;
-    println!("{:?}", start_pos);
+    println!("{start_pos:?}");
 
     let locations = parser::parse(input.into()).expect("parses").1;
     let processed_locations = locations_to_asteroid_infos(start_pos, locations);
@@ -147,7 +147,6 @@ fn quantise_angle(angle: f32) -> i32 {
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
-    use std::f64::consts::PI;
 
     use super::*;
 
@@ -162,32 +161,22 @@ mod tests {
         assert_eq!(part_1::process(input), expected)
     }
 
-    #[test]
-    fn test_angles() {
-        let test_point = Vec2::new(10.0, 19.0); // the point of the asteroid
-        let ref_point = Vec2::new(11.0, 13.0); // the point of the laser
-        let vec_to = test_point - ref_point;
-        let ref_vec = Vec2::new(0.0, -1.0); // the reference vector "straight up" in
-        // the matrix
-        dbg!(test_point);
-        dbg!(ref_point);
-        dbg!(vec_to);
-        println!("base angle from glam: {}", ref_vec.angle_to(vec_to));
-        let expected_angle = 2.0 / 4.0 * PI as f32;
-        let calculated_angle = my_angle_to(ref_vec, vec_to);
-        dbg!(expected_angle);
-        dbg!(calculated_angle);
-        assert!((expected_angle - calculated_angle).abs() < 0.1)
-    }
-
     // #[test]
-    // fn test_mine_simple() {
-    //     let input = "..#..
-    // ..#..
-    // ..#..
-    // #.#.#";
-    //     let expected = 100;
-    //     assert_eq!(solve(input), expected)
+    // fn test_angles() {
+    //     let test_point = Vec2::new(10.0, 19.0); // the point of the asteroid
+    //     let ref_point = Vec2::new(11.0, 13.0); // the point of the laser
+    //     let vec_to = test_point - ref_point;
+    //     let ref_vec = Vec2::new(0.0, -1.0); // the reference vector "straight up" in
+    //     // the matrix
+    //     dbg!(test_point);
+    //     dbg!(ref_point);
+    //     dbg!(vec_to);
+    //     println!("base angle from glam: {}", ref_vec.angle_to(vec_to));
+    //     let expected_angle = 2.0 / 4.0 * PI as f32;
+    //     let calculated_angle = my_angle_to(ref_vec, vec_to);
+    //     dbg!(expected_angle);
+    //     dbg!(calculated_angle);
+    //     assert!((expected_angle - calculated_angle).abs() < 0.1)
     // }
 
     #[rstest]
