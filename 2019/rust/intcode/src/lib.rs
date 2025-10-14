@@ -281,7 +281,6 @@ impl IntcodeState {
             }
             Opcode::Input(m1) => {
                 // let input_val = self.input.pop_front().expect("Expected input!");
-                println!("{:?}", self.program);
                 let input_val = self.input.next().expect("Expected input!");
                 let target_pos = match m1 {
                     ParameterMode::Position => self.get_opcode_num(self.head + 1),
@@ -291,6 +290,7 @@ impl IntcodeState {
                     }
                 };
                 self.set_opcode_num(target_pos, input_val);
+
                 self.head += 2;
             }
             Opcode::Output(m1) => {
@@ -378,7 +378,7 @@ impl IntcodeState {
             Opcode::Equals(m1, m2, m3) => {
                 let a = match m1 {
                     ParameterMode::Position => self.get_opcode_num(self.head + 1),
-                    ParameterMode::Immediate => (self.head + 1) as i64,
+                    ParameterMode::Immediate => self.head + 1,
                     ParameterMode::Relative => {
                         self.relative_base + self.get_opcode_num(self.head + 1)
                     }
@@ -417,7 +417,7 @@ impl IntcodeState {
                         self.relative_base + self.get_opcode_num(self.head + 1)
                     }
                 };
-                self.relative_base += a;
+                self.relative_base += self.get_opcode_num(a);
                 self.head += 2
             }
         }
