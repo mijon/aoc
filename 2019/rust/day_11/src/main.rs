@@ -1,6 +1,7 @@
 // mod parsing;
 mod part_1;
 mod part_2;
+pub mod robot;
 
 fn main() {
     let input = helpers::read_input("11").expect("unable to read input");
@@ -17,13 +18,13 @@ mod tests {
     fn part_1_works() {
         let input = helpers::read_input("11").expect("unable to read input");
         let result = part_1::solve(&input);
-        assert_eq!(result, 4);
+        assert_eq!(result, 2883);
     }
 
     #[test]
     fn part_2_works() {
         let input = helpers::read_input("11").expect("unable to read input");
         let result = part_2::solve(&input);
-        assert_eq!(result, 4);
+        assert_eq!(result, 0);
     }
 }
