@@ -1,0 +1,9 @@
+[package]
+name = "day_12"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+helpers = { path = "../helpers"}
+nom = "8.0.0"
+glam = "0.30.8"
