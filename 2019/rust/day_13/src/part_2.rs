@@ -52,8 +52,7 @@ pub fn solve(input: &str, interactive: bool) -> i32 {
                 .clone()
                 .get_tiles()
                 .iter()
-                .filter(|(_, tile)| tile == &&Tile::Ball)
-                .next()
+                .find(|(_, tile)| tile == &&Tile::Ball)
                 .unwrap()
                 .0
                 .x;
@@ -62,8 +61,7 @@ pub fn solve(input: &str, interactive: bool) -> i32 {
                 .clone()
                 .get_tiles()
                 .iter()
-                .filter(|(_, tile)| tile == &&Tile::Paddle)
-                .next()
+                .find(|(_, tile)| tile == &&Tile::Paddle)
                 .unwrap()
                 .0
                 .x;

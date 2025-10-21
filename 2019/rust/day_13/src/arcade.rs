@@ -22,9 +22,9 @@ pub struct Arcade {
 }
 
 // impls
-impl Into<char> for Tile {
-    fn into(self) -> char {
-        match self {
+impl From<Tile> for char {
+    fn from(val: Tile) -> Self {
+        match val {
             Tile::Empty => ' ',
             Tile::Wall => '#',
             Tile::Block => '.',
@@ -44,6 +44,12 @@ impl From<i32> for Tile {
             4 => Tile::Ball,
             _ => panic!("Expected a tile number between 0 and 4"),
         }
+    }
+}
+
+impl Default for Arcade {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
